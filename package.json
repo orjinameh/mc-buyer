@@ -4,7 +4,9 @@
   "description": "Agent-native spending layer that lets AI agents use Stellar assets to purchase everyday Nigerian services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -31,12 +33,14 @@
     "axios": "^1.7.0",
     "crypto": "^1.0.1",
     "express": "^4.21.0",
+    "mongodb": "^7.5.0",
     "stellar-sdk": "^12.3.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.0",
+    "mongodb-memory-server": "^11.2.0",
     "typescript": "^5.5.0",
     "vitest": "^2.0.0"
   }

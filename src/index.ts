@@ -1,5 +1,6 @@
 import express from 'express';
 import { StaticExchangeRateProvider } from '9bridge';
+import { connectDatabase, closeDatabase } from './config/database.js';
 import { NineBridgeIntegration } from './payments/ninebridge.js';
 import { SpendingAccountManager } from './accounts/spendingAccount.js';
 import { AgentPolicyManager } from './agents/policies.js';
@@ -11,6 +12,9 @@ import { createDashboardRouter } from './api/dashboard.js';
 import { config } from './config/env.js';
 
 async function main() {
+  await connectDatabase(config.mongodb.uri);
+  console.log('Connected to MongoDB');
+
   const app = express();
   app.use(express.json({
     verify: (req, _res, buf) => { (req as any).rawBody = buf.toString(); },

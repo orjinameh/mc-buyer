@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoClient, Db } from 'mongodb';
+import { setDatabase } from '../src/config/database.js';
 import { SpendingAccountManager } from '../src/accounts/spendingAccount.js';
 import { QuoteManager } from '../src/payments/quotes.js';
 import { PaymentAuthorizationManager } from '../src/payments/authorization.js';
@@ -9,8 +12,33 @@ import {
   InsufficientBalanceError,
   ExpiredQuoteError,
   DuplicateRequestError,
-  QuoteMismatchError,
 } from '../src/errors/index.js';
+
+let mongod: MongoMemoryServer;
+let client: MongoClient;
+let db: Db;
+
+beforeAll(async () => {
+  mongod = await MongoMemoryServer.create();
+  client = new MongoClient(mongod.getUri());
+  await client.connect();
+  db = client.db();
+  setDatabase(db);
+});
+
+afterAll(async () => {
+  await client?.close();
+  await mongod?.stop();
+});
+
+beforeEach(async () => {
+  await db.collection('spending_accounts').deleteMany({});
+  await db.collection('spending_transactions').deleteMany({});
+  await db.collection('service_quotes').deleteMany({});
+  await db.collection('payment_authorizations').deleteMany({});
+  await db.collection('agent_policies').deleteMany({});
+  await db.collection('daily_spends').deleteMany({});
+});
 
 describe('SpendingAccountManager', () => {
   let accounts: SpendingAccountManager;
@@ -39,7 +67,6 @@ describe('SpendingAccountManager', () => {
   it('rejects duplicate credit', async () => {
     await accounts.createAccount('user1', 'testnet');
     await accounts.credit('user1', '10.000000', 'fund_123');
-
     await expect(accounts.credit('user1', '5.000000', 'fund_123')).rejects.toThrow(DuplicateRequestError);
   });
 
@@ -74,6 +101,16 @@ describe('SpendingAccountManager', () => {
     const balance = await accounts.getBalance('user1');
     expect(balance.available).toBe('10.000000');
   });
+
+  it('lists transactions', async () => {
+    await accounts.createAccount('user1', 'testnet');
+    await accounts.credit('user1', '10.000000', 'fund_1');
+    await accounts.debit('user1', '2.000000', 'airtime', 'air_1');
+    await accounts.debit('user1', '1.000000', 'data', 'data_1');
+
+    const txs = await accounts.getTransactions('user1');
+    expect(txs).toHaveLength(3);
+  });
 });
 
 describe('QuoteManager', () => {
@@ -102,7 +139,6 @@ describe('QuoteManager', () => {
   it('invalidates quote', async () => {
     const quote = await quotes.createQuote('airtime', 1000);
     await quotes.invalidateQuote(quote.quoteId);
-
     await expect(quotes.getQuote(quote.quoteId)).rejects.toThrow();
   });
 });
@@ -132,7 +168,7 @@ describe('PaymentAuthorizationManager', () => {
     expect(authorized.status).toBe('authorized');
   });
 
-  it('rejects expired quote authorization', async () => {
+  it('rejects expired quote', async () => {
     const quote = await quotes.createQuote('airtime', 1000);
     const auth = await authorizations.create({
       userId: 'user1',
@@ -142,9 +178,11 @@ describe('PaymentAuthorizationManager', () => {
       destination: { phoneNumber: '08012345678', network: 'mtn' },
     });
 
-    // Manually expire the auth
-    auth.expiresAt = new Date(Date.now() - 100000).toISOString();
-    authorizations['authorizations'].set(auth.id, auth);
+    // Expire by modifying directly in db
+    await db.collection('payment_authorizations').updateOne(
+      { id: auth.id },
+      { $set: { expiresAt: new Date(Date.now() - 100000).toISOString() } },
+    );
 
     await expect(authorizations.authorize(auth.id, quote.assetAmount)).rejects.toThrow(ExpiredQuoteError);
   });
@@ -194,6 +232,18 @@ describe('AgentPolicyManager', () => {
 
     const result = await policies.authorize('agent1', 'airtime', '1.000000');
     expect(result.allowed).toBe(false);
+  });
+
+  it('tracks daily spend', async () => {
+    await policies.createPolicy('agent1', 'user1', {
+      dailyLimit: '5',
+      perTransactionLimit: '5',
+    });
+
+    await policies.authorize('agent1', 'airtime', '3.000000');
+    await policies.authorize('agent1', 'data', '1.500000');
+
+    await expect(policies.authorize('agent1', 'airtime', '1.000000')).rejects.toThrow();
   });
 });
 

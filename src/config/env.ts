@@ -13,6 +13,10 @@ function optionalEnv(name: string, fallback: string): string {
 export const config = {
   port: parseInt(optionalEnv('PORT', '3000'), 10),
 
+  mongodb: {
+    uri: requireEnv('MONGODB_URI'),
+  },
+
   vtpass: {
     apiKey: requireEnv('VTPASS_API_KEY'),
     secretKey: requireEnv('VTPASS_SECRET_KEY'),

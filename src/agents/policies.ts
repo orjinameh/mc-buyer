@@ -1,9 +1,33 @@
+import { Db, ObjectId } from 'mongodb';
 import { AgentPolicy } from '../stellar/types.js';
 import { UnauthorizedAgentError, SpendingLimitExceededError } from '../errors/index.js';
+import { getDatabase } from '../config/database.js';
+
+interface PolicyDoc {
+  _id?: ObjectId;
+  id: string;
+  agentId: string;
+  userId: string;
+  enabled: boolean;
+  dailyLimit: string;
+  perTransactionLimit: string;
+  allowedServices: AgentPolicy['allowedServices'];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface DailySpendDoc {
+  _id?: ObjectId;
+  key: string;
+  agentId: string;
+  date: string;
+  total: string;
+}
 
 export class AgentPolicyManager {
-  private policies: Map<string, AgentPolicy> = new Map();
-  private dailySpend: Map<string, { date: string; total: string }> = new Map();
+  private db(): Db {
+    return getDatabase();
+  }
 
   async createPolicy(
     agentId: string,
@@ -15,7 +39,7 @@ export class AgentPolicyManager {
       allowedServices?: AgentPolicy['allowedServices'];
     } = {},
   ): Promise<AgentPolicy> {
-    const policy: AgentPolicy = {
+    const doc: PolicyDoc = {
       id: `policy_${agentId}_${Date.now()}`,
       agentId,
       userId,
@@ -27,29 +51,35 @@ export class AgentPolicyManager {
       updatedAt: new Date().toISOString(),
     };
 
-    this.policies.set(agentId, policy);
-    return policy;
+    await this.db().collection<PolicyDoc>('agent_policies').insertOne(doc);
+    return this.toPolicy(doc);
   }
 
   async getPolicy(agentId: string): Promise<AgentPolicy | undefined> {
-    return this.policies.get(agentId);
+    const doc = await this.db().collection<PolicyDoc>('agent_policies').findOne({ agentId });
+    return doc ? this.toPolicy(doc) : undefined;
   }
 
   async updatePolicy(
     agentId: string,
     updates: Partial<Pick<AgentPolicy, 'enabled' | 'dailyLimit' | 'perTransactionLimit' | 'allowedServices'>>,
   ): Promise<AgentPolicy> {
-    const policy = this.policies.get(agentId);
-    if (!policy) throw new UnauthorizedAgentError(agentId);
+    const doc = await this.db().collection<PolicyDoc>('agent_policies').findOne({ agentId });
+    if (!doc) throw new UnauthorizedAgentError(agentId);
 
-    if (updates.enabled !== undefined) policy.enabled = updates.enabled;
-    if (updates.dailyLimit !== undefined) policy.dailyLimit = updates.dailyLimit;
-    if (updates.perTransactionLimit !== undefined) policy.perTransactionLimit = updates.perTransactionLimit;
-    if (updates.allowedServices !== undefined) policy.allowedServices = updates.allowedServices;
-    policy.updatedAt = new Date().toISOString();
+    const setFields: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+    if (updates.enabled !== undefined) setFields.enabled = updates.enabled;
+    if (updates.dailyLimit !== undefined) setFields.dailyLimit = updates.dailyLimit;
+    if (updates.perTransactionLimit !== undefined) setFields.perTransactionLimit = updates.perTransactionLimit;
+    if (updates.allowedServices !== undefined) setFields.allowedServices = updates.allowedServices;
 
-    this.policies.set(agentId, policy);
-    return policy;
+    await this.db().collection<PolicyDoc>('agent_policies').updateOne(
+      { agentId },
+      { $set: setFields },
+    );
+
+    const updated = await this.db().collection<PolicyDoc>('agent_policies').findOne({ agentId });
+    return this.toPolicy(updated!);
   }
 
   async authorize(
@@ -57,44 +87,63 @@ export class AgentPolicyManager {
     service: AgentPolicy['allowedServices'][number],
     assetAmount: string,
   ): Promise<{ allowed: boolean; reason?: string }> {
-    const policy = this.policies.get(agentId);
+    const doc = await this.db().collection<PolicyDoc>('agent_policies').findOne({ agentId });
 
-    if (!policy) {
+    if (!doc) {
       throw new UnauthorizedAgentError(agentId);
     }
 
-    if (!policy.enabled) {
+    if (!doc.enabled) {
       return { allowed: false, reason: 'Agent is disabled' };
     }
 
-    if (!policy.allowedServices.includes(service)) {
+    if (!doc.allowedServices.includes(service)) {
       return { allowed: false, reason: `Service "${service}" is not allowed for this agent` };
     }
 
     const amount = parseFloat(assetAmount);
-    const perTxLimit = parseFloat(policy.perTransactionLimit);
+    const perTxLimit = parseFloat(doc.perTransactionLimit);
     if (amount > perTxLimit) {
-      throw new SpendingLimitExceededError(
-        'per-transaction',
-        policy.perTransactionLimit,
-      );
+      throw new SpendingLimitExceededError('per-transaction', doc.perTransactionLimit);
     }
 
     const today = new Date().toISOString().split('T')[0];
     const key = `${agentId}:${today}`;
-    const daily = this.dailySpend.get(key);
+    const daily = await this.db().collection<DailySpendDoc>('daily_spends').findOne({ key });
 
     if (daily) {
       const dailyTotal = parseFloat(daily.total) + amount;
-      const dailyLimit = parseFloat(policy.dailyLimit);
+      const dailyLimit = parseFloat(doc.dailyLimit);
       if (dailyTotal > dailyLimit) {
-        throw new SpendingLimitExceededError('daily', policy.dailyLimit);
+        throw new SpendingLimitExceededError('daily', doc.dailyLimit);
       }
-      daily.total = dailyTotal.toFixed(6);
+      await this.db().collection<DailySpendDoc>('daily_spends').updateOne(
+        { key },
+        { $set: { total: dailyTotal.toFixed(6) } },
+      );
     } else {
-      this.dailySpend.set(key, { date: today, total: assetAmount });
+      await this.db().collection<DailySpendDoc>('daily_spends').insertOne({
+        key,
+        agentId,
+        date: today,
+        total: assetAmount,
+      });
     }
 
     return { allowed: true };
+  }
+
+  private toPolicy(doc: PolicyDoc): AgentPolicy {
+    return {
+      id: doc.id,
+      agentId: doc.agentId,
+      userId: doc.userId,
+      enabled: doc.enabled,
+      dailyLimit: doc.dailyLimit,
+      perTransactionLimit: doc.perTransactionLimit,
+      allowedServices: doc.allowedServices,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    };
   }
 }

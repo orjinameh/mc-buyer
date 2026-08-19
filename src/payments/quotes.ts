@@ -1,17 +1,33 @@
+import { Db, ObjectId } from 'mongodb';
 import { ServiceQuote } from '../stellar/types.js';
-import {
-  IExchangeRateProvider,
-  IExchangeRateQuote,
-} from '9bridge';
+import { IExchangeRateProvider } from '9bridge';
 import { ExpiredQuoteError } from '../errors/index.js';
 import * as crypto from 'crypto';
+import { getDatabase } from '../config/database.js';
+
+interface QuoteDoc {
+  _id?: ObjectId;
+  quoteId: string;
+  service: ServiceQuote['service'];
+  fiatAmount: number;
+  fiatCurrency: 'NGN';
+  asset: 'USDC';
+  assetAmount: string;
+  exchangeRate: string;
+  expiresAt: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
 
 export class QuoteManager {
-  private quotes: Map<string, ServiceQuote & { createdAt: string }> = new Map();
   private rateProvider: IExchangeRateProvider;
 
   constructor(rateProvider: IExchangeRateProvider) {
     this.rateProvider = rateProvider;
+  }
+
+  private db(): Db {
+    return getDatabase();
   }
 
   async createQuote(
@@ -26,7 +42,7 @@ export class QuoteManager {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 5 * 60 * 1000);
 
-    const serviceQuote: ServiceQuote = {
+    const doc: QuoteDoc = {
       quoteId: id,
       service,
       fiatAmount,
@@ -41,24 +57,40 @@ export class QuoteManager {
         rateTimestamp: quote.timestamp,
         rateQuoteId: quote.quoteId,
       },
+      createdAt: now.toISOString(),
     };
 
-    this.quotes.set(id, { ...serviceQuote, createdAt: now.toISOString() });
-    return serviceQuote;
+    await this.db().collection<QuoteDoc>('service_quotes').insertOne(doc);
+
+    return this.toQuote(doc);
   }
 
   async getQuote(quoteId: string): Promise<ServiceQuote> {
-    const quote = this.quotes.get(quoteId);
-    if (!quote) throw new Error(`Quote ${quoteId} not found`);
+    const doc = await this.db().collection<QuoteDoc>('service_quotes').findOne({ quoteId });
+    if (!doc) throw new Error(`Quote ${quoteId} not found`);
 
-    if (new Date(quote.expiresAt) < new Date()) {
+    if (new Date(doc.expiresAt) < new Date()) {
       throw new ExpiredQuoteError(quoteId);
     }
 
-    return quote;
+    return this.toQuote(doc);
   }
 
   async invalidateQuote(quoteId: string): Promise<void> {
-    this.quotes.delete(quoteId);
+    await this.db().collection<QuoteDoc>('service_quotes').deleteOne({ quoteId });
+  }
+
+  private toQuote(doc: QuoteDoc): ServiceQuote {
+    return {
+      quoteId: doc.quoteId,
+      service: doc.service,
+      fiatAmount: doc.fiatAmount,
+      fiatCurrency: doc.fiatCurrency,
+      asset: doc.asset,
+      assetAmount: doc.assetAmount,
+      exchangeRate: doc.exchangeRate,
+      expiresAt: doc.expiresAt,
+      metadata: doc.metadata,
+    };
   }
 }
