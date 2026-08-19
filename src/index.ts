@@ -9,6 +9,12 @@ import { PaymentAuthorizationManager } from './payments/authorization.js';
 import { SettlementLayer } from './payments/settlement.js';
 import { createMCPServer } from './mcp/server.js';
 import { createDashboardRouter } from './api/dashboard.js';
+import { createFundingRouter } from './api/funding.js';
+import { createTransactionsRouter } from './api/transactions.js';
+import { rateLimit } from './api/rateLimit.js';
+import { idempotency } from './api/idempotency.js';
+import { replayProtection } from './api/replayProtection.js';
+import { requireAuth } from './api/auth.js';
 import { config } from './config/env.js';
 
 async function main() {
@@ -19,6 +25,10 @@ async function main() {
   app.use(express.json({
     verify: (req, _res, buf) => { (req as any).rawBody = buf.toString(); },
   }));
+
+  app.use(rateLimit({ windowMs: 60_000, maxRequests: 120 }));
+  app.use(replayProtection);
+  app.use(idempotency);
 
   const rateProvider = new StaticExchangeRateProvider(
     config.exchangeRate.fallbackNgNUsd,
@@ -34,23 +44,43 @@ async function main() {
   const ninebridge = new NineBridgeIntegration(accounts, rateProvider);
   app.use(ninebridge.getExpressRouter());
 
-  const mcpServer = createMCPServer(rateProvider);
-
   app.use(createDashboardRouter(accounts, quotes, policies));
+  app.use(createFundingRouter(accounts, ninebridge));
+  app.use(createTransactionsRouter(accounts));
+
+  const mcpServer = createMCPServer(rateProvider);
 
   app.get('/health', (_req, res) => {
     res.json({
       status: 'ok',
-      version: '1.0.0',
+      version: '1.1.0',
       stellar: config.stellar.network,
+      tools: 10,
     });
   });
 
-  app.listen(config.port, () => {
-    console.log(`MC Buyer running on port ${config.port}`);
-    console.log(`Stellar network: ${config.stellar.network}`);
-    console.log(`9bridge webhook endpoint: /api/v1/webhooks/payment-listener`);
+  app.use((_req, res) => {
+    res.status(404).json({ error: 'Not found' });
   });
+
+  const server = app.listen(config.port, () => {
+    console.log(`MC Buyer v1.1.0 on port ${config.port}`);
+    console.log(`Stellar: ${config.stellar.network}`);
+    console.log(`Webhook: /api/v1/webhooks/payment-listener`);
+    console.log(`Dashboard: /api/v1/account`);
+    console.log(`Funding: /api/v1/funding/initiate`);
+    console.log(`Transactions: /api/v1/transactions`);
+  });
+
+  const shutdown = async () => {
+    console.log('Shutting down...');
+    server.close();
+    await closeDatabase();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 main().catch((err) => {

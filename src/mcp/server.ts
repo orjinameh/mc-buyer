@@ -206,5 +206,25 @@ export function createMCPServer(rateProvider: IExchangeRateProvider): McpServer 
     },
   );
 
+  server.tool(
+    'get_transaction_history',
+    'Returns recent spending transactions for the authenticated user',
+    {
+      limit: z.number().optional().describe('Max transactions to return (default 20)'),
+      service: z.string().optional().describe('Filter by service type: airtime, data, electricity, cable'),
+    },
+    async (args: any, extra: any) => {
+      const ctx: ToolContext = {
+        userId: extra?.userId ?? 'anonymous',
+        agentId: extra?.agentId ?? 'default-agent',
+      };
+      const transactions = await tools.getTransactionHistory(ctx, {
+        limit: args.limit ?? 20,
+        service: args.service,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(transactions) }] };
+    },
+  );
+
   return server;
 }

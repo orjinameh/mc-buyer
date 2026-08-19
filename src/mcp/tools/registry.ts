@@ -387,4 +387,17 @@ export class ToolRegistry {
       };
     }
   }
+
+  async getTransactionHistory(
+    ctx: ToolContext,
+    opts: { limit?: number; service?: string },
+  ) {
+    const txs = await this.accounts.getTransactions(ctx.userId, opts.limit ?? 20);
+
+    if (opts.service) {
+      return txs.filter((tx) => tx.type === opts.service);
+    }
+
+    return txs;
+  }
 }
