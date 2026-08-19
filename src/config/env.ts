@@ -11,38 +11,74 @@ function optionalEnv(name: string, fallback: string): string {
 }
 
 export const config = {
-  port: parseInt(optionalEnv('PORT', '3000'), 10),
-
-  mongodb: {
-    uri: requireEnv('MONGODB_URI'),
+  get port() {
+    return parseInt(optionalEnv('PORT', '3000'), 10);
   },
 
-  vtpass: {
-    apiKey: requireEnv('VTPASS_API_KEY'),
-    secretKey: requireEnv('VTPASS_SECRET_KEY'),
+  get mongodb() {
+    return {
+      get uri() {
+        return requireEnv('MONGODB_URI');
+      },
+    };
   },
 
-  paystack: {
-    secretKey: optionalEnv('PAYSTACK_SECRET_KEY', ''),
+  get vtpass() {
+    return {
+      get apiKey() {
+        return requireEnv('VTPASS_API_KEY');
+      },
+      get secretKey() {
+        return requireEnv('VTPASS_SECRET_KEY');
+      },
+    };
   },
 
-  monnify: {
-    apiKey: optionalEnv('MONNIFY_API_KEY', ''),
-    secretKey: optionalEnv('MONNIFY_SECRET_KEY', ''),
-    contractCode: optionalEnv('MONNIFY_CONTRACT_CODE', ''),
+  get paystack() {
+    return {
+      get secretKey() {
+        return optionalEnv('PAYSTACK_SECRET_KEY', '');
+      },
+    };
   },
 
-  flutterwave: {
-    secretKey: optionalEnv('FLUTTERWAVE_SECRET_KEY', ''),
+  get monnify() {
+    return {
+      get apiKey() {
+        return optionalEnv('MONNIFY_API_KEY', '');
+      },
+      get secretKey() {
+        return optionalEnv('MONNIFY_SECRET_KEY', '');
+      },
+      get contractCode() {
+        return optionalEnv('MONNIFY_CONTRACT_CODE', '');
+      },
+    };
   },
 
-  stellar: {
-    network: optionalEnv('STELLAR_NETWORK', 'testnet') as 'testnet' | 'mainnet',
-    payTo: requireEnv('STELLAR_PAY_TO'),
-    sorobanContractId: requireEnv('SOROBAN_CONTRACT_ID'),
+  get flutterwave() {
+    return {
+      get secretKey() {
+        return optionalEnv('FLUTTERWAVE_SECRET_KEY', '');
+      },
+    };
+  },
+
+  get stellar() {
+    return {
+      get network() {
+        return optionalEnv('STELLAR_NETWORK', 'testnet') as 'testnet' | 'mainnet';
+      },
+      get payTo() {
+        return requireEnv('STELLAR_PAY_TO');
+      },
+      get sorobanContractId() {
+        return requireEnv('SOROBAN_CONTRACT_ID');
+      },
+    };
   },
 
   exchangeRate: {
     fallbackNgNUsd: 1600,
   },
-} as const;
+};
