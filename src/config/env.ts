@@ -26,10 +26,10 @@ export const config = {
   get vtpass() {
     return {
       get apiKey() {
-        return requireEnv('VTPASS_API_KEY');
+        return optionalEnv('VTPASS_API_KEY', '');
       },
       get secretKey() {
-        return requireEnv('VTPASS_SECRET_KEY');
+        return optionalEnv('VTPASS_SECRET_KEY', '');
       },
     };
   },
@@ -70,10 +70,10 @@ export const config = {
         return optionalEnv('STELLAR_NETWORK', 'testnet') as 'testnet' | 'mainnet';
       },
       get payTo() {
-        return requireEnv('STELLAR_PAY_TO');
+        return optionalEnv('STELLAR_PAY_TO', 'GDEFAULT_PAY_TO_NOT_CONFIGURED');
       },
       get sorobanContractId() {
-        return requireEnv('SOROBAN_CONTRACT_ID');
+        return optionalEnv('SOROBAN_CONTRACT_ID', 'CDEFAULT_CONTRACT_NOT_CONFIGURED');
       },
     };
   },
