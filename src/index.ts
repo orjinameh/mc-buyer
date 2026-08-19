@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import { StaticExchangeRateProvider } from '9bridge';
 import { connectDatabase, closeDatabase } from './config/database.js';
 import { NineBridgeIntegration } from './payments/ninebridge.js';
@@ -9,14 +10,19 @@ import { QuoteManager } from './payments/quotes.js';
 import { PaymentAuthorizationManager } from './payments/authorization.js';
 import { SettlementLayer } from './payments/settlement.js';
 import { createMCPServer } from './mcp/server.js';
+import { SimpleOAuthProvider } from './mcp/oauth.js';
 import { createDashboardRouter } from './api/dashboard.js';
 import { createFundingRouter } from './api/funding.js';
 import { createTransactionsRouter } from './api/transactions.js';
 import { rateLimit } from './api/rateLimit.js';
 import { idempotency } from './api/idempotency.js';
 import { replayProtection } from './api/replayProtection.js';
-import { requireAuth } from './api/auth.js';
 import { config } from './config/env.js';
+
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { mcpAuthRouter, mcpAuthMetadataRouter, getOAuthProtectedResourceMetadataUrl, createOAuthMetadata } from '@modelcontextprotocol/sdk/server/auth/router.js';
+import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js';
+import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 
 async function main() {
   await connectDatabase(config.mongodb.uri);
@@ -49,8 +55,115 @@ async function main() {
   app.use(createFundingRouter(accounts, ninebridge));
   app.use(createTransactionsRouter(accounts));
 
-  const mcpServer = createMCPServer(rateProvider);
+  // --- MCP OAuth Setup ---
+  const externalUrl = config.render.externalUrl || `http://localhost:${config.port}`;
+  const baseUrl = new URL(externalUrl);
+  const mcpServerUrl = new URL('/mcp', baseUrl);
 
+  const oauthProvider = new SimpleOAuthProvider();
+  const oauthMetadata = createOAuthMetadata({
+    provider: oauthProvider,
+    issuerUrl: baseUrl,
+    scopesSupported: ['mcp:tools'],
+  });
+
+  // OAuth server endpoints (dynamic client registration, authorize, token, etc.)
+  app.use(mcpAuthRouter({
+    provider: oauthProvider,
+    issuerUrl: baseUrl,
+    scopesSupported: ['mcp:tools'],
+    resourceName: 'MC Buyer',
+  }));
+
+  // Protected resource metadata for MCP endpoint
+  app.use(mcpAuthMetadataRouter({
+    oauthMetadata,
+    resourceServerUrl: mcpServerUrl,
+    scopesSupported: ['mcp:tools'],
+    resourceName: 'MC Buyer',
+  }));
+
+  // Bearer auth middleware for MCP endpoints
+  const authMiddleware = requireBearerAuth({
+    verifier: oauthProvider,
+    requiredScopes: [],
+    resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(mcpServerUrl),
+  });
+
+  // --- MCP Server with Streamable HTTP Transport ---
+  const transports: Record<string, StreamableHTTPServerTransport> = {};
+
+  app.post('/mcp', authMiddleware, async (req, res) => {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    try {
+      let transport: StreamableHTTPServerTransport;
+
+      if (sessionId && transports[sessionId]) {
+        transport = transports[sessionId];
+      } else if (!sessionId && isInitializeRequest(req.body)) {
+        transport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: () => randomUUID(),
+          onsessioninitialized: (sid: string) => {
+            console.log(`MCP session initialized: ${sid}`);
+            transports[sid] = transport;
+          },
+        });
+
+        transport.onclose = () => {
+          const sid = transport.sessionId;
+          if (sid && transports[sid]) {
+            delete transports[sid];
+          }
+        };
+
+        const server = createMCPServer(rateProvider);
+        await server.connect(transport);
+        await transport.handleRequest(req, res, req.body);
+        return;
+      } else {
+        res.status(400).json({
+          jsonrpc: '2.0',
+          error: { code: -32000, message: 'Bad Request: No valid session ID' },
+          id: null,
+        });
+        return;
+      }
+
+      await transport.handleRequest(req, res, req.body);
+    } catch (error) {
+      console.error('MCP POST error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: '2.0',
+          error: { code: -32603, message: 'Internal server error' },
+          id: null,
+        });
+      }
+    }
+  });
+
+  app.get('/mcp', authMiddleware, async (req, res) => {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+    if (!sessionId || !transports[sessionId]) {
+      res.status(400).send('Invalid or missing session ID');
+      return;
+    }
+    const transport = transports[sessionId];
+    await transport.handleRequest(req, res);
+  });
+
+  app.delete('/mcp', authMiddleware, async (req, res) => {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+    if (!sessionId || !transports[sessionId]) {
+      res.status(400).send('Invalid or missing session ID');
+      return;
+    }
+    const transport = transports[sessionId];
+    await transport.handleRequest(req, res);
+  });
+
+  // --- Routes ---
   app.get('/health', (_req, res) => {
     res.json({
       status: 'ok',
@@ -69,16 +182,17 @@ async function main() {
   });
 
   const server = app.listen(config.port, () => {
-    console.log(`MC Buyer v1.1.0 on port ${config.port}`);
+    console.log(`MC Buyer v1.2.0 on port ${config.port}`);
     console.log(`Stellar: ${config.stellar.network}`);
-    console.log(`Webhook: /api/v1/webhooks/payment-listener`);
-    console.log(`Dashboard: /api/v1/account`);
-    console.log(`Funding: /api/v1/funding/initiate`);
-    console.log(`Transactions: /api/v1/transactions`);
+    console.log(`MCP: ${mcpServerUrl}`);
+    console.log(`OAuth: ${baseUrl}`);
   });
 
   const shutdown = async () => {
     console.log('Shutting down...');
+    for (const sid in transports) {
+      try { await transports[sid].close(); delete transports[sid]; } catch {}
+    }
     server.close();
     await closeDatabase();
     process.exit(0);

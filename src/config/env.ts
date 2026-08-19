@@ -78,6 +78,14 @@ export const config = {
     };
   },
 
+  get render() {
+    return {
+      get externalUrl() {
+        return optionalEnv('RENDER_EXTERNAL_URL', '');
+      },
+    };
+  },
+
   exchangeRate: {
     fallbackNgNUsd: 1600,
   },
