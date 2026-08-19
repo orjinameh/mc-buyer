@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import { StaticExchangeRateProvider } from '9bridge';
 import { connectDatabase, closeDatabase } from './config/database.js';
 import { NineBridgeIntegration } from './payments/ninebridge.js';
@@ -60,33 +61,7 @@ async function main() {
   });
 
   app.get('/', (_req, res) => {
-    res.json({
-      name: 'MC Buyer',
-      description: 'Agent-native spending layer — Stellar USDC for everyday Nigerian services',
-      version: '1.2.0',
-      docs: 'https://github.com/orjinameh/mc-buyer',
-      endpoints: {
-        health: '/health',
-        account: '/api/v1/account',
-        funding: '/api/v1/funding/initiate',
-        transactions: '/api/v1/transactions',
-        quote: '/api/v1/quote',
-        policies: '/api/v1/policies',
-        webhooks: '/api/v1/webhooks/payment-listener',
-      },
-      mcp_tools: [
-        'get_spending_balance',
-        'quote_airtime',
-        'buy_airtime',
-        'quote_data',
-        'buy_data',
-        'quote_electricity',
-        'pay_electricity_bill',
-        'quote_cable',
-        'renew_cable_tv',
-        'get_transaction_history',
-      ],
-    });
+    res.sendFile(path.join(__dirname, 'api', 'landing.html'));
   });
 
   app.use((_req, res) => {
