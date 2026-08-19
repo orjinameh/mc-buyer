@@ -192,9 +192,9 @@
         <div class="step" id="step1">
           <div class="step-header">
             <div class="step-num">1</div>
-            <div class="step-title">Add Server URL</div>
+            <div class="step-title">Add MCP Server URL</div>
           </div>
-          <div class="step-desc">Copy this URL into your agent's MCP configuration.</div>
+          <div class="step-desc">Copy this URL into your agent's MCP connector settings.</div>
           <div class="copy-row">
             <input class="input" id="server-url" readonly>
             <button class="btn btn-ghost" onclick="copyUrl()">Copy</button>
@@ -412,7 +412,7 @@
     function setAudit(a){localStorage.setItem('mc-audit',JSON.stringify(a));}
 
     // --- Init ---
-    document.getElementById('server-url').value=window.location.origin;
+    document.getElementById('server-url').value=window.location.origin+'/mcp';
     const params=new URLSearchParams(window.location.search);
     if(params.get('approved')==='1')showDashboard();
     else if(getAgents().length)showDashboard();
