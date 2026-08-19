@@ -61,7 +61,7 @@ async function main() {
   });
 
   app.get('/', (_req, res) => {
-    res.sendFile(path.join(__dirname, 'api', 'landing.html'));
+    res.sendFile(path.join(process.cwd(), 'src', 'api', 'landing.html'));
   });
 
   app.use((_req, res) => {
