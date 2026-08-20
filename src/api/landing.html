@@ -23,8 +23,8 @@
     .mkt-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;max-width:800px;margin:0 auto}
     .mkt-hero h1{font-size:48px;font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:24px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
     .mkt-hero .anim-line{position:relative;height:60px;overflow:hidden;width:100%}
-    .mkt-hero .anim-word{position:absolute;left:0;right:0;opacity:0;transition:opacity .4s ease,transform .4s ease;transform:translateY(10px);text-align:center}
-    .mkt-hero .anim-word.visible{opacity:1;transform:translateY(0)}
+    .mkt-hero .anim-word{position:absolute;left:0;right:0;text-align:center;display:none}
+    .mkt-hero .anim-word.visible{display:block}
     .mkt-hero .anim-word .green{color:var(--green)}
     .mkt-hero .tagline{font-size:17px;color:var(--text-secondary);margin-bottom:12px;max-width:520px}
     .mkt-hero .ai-row{display:flex;gap:12px;margin-bottom:40px;align-items:center}
@@ -233,7 +233,7 @@
       <div class="cap-grid">
         <div class="cap-item"><div class="cap-icon">&#9742;</div><div class="cap-label">Buy Airtime</div></div>
         <div class="cap-item"><div class="cap-icon">&#9889;</div><div class="cap-label">Pay Electricity</div></div>
-        <div class="cap-item"><div class="cap-icon">&#128176;</div><div class="cap-label">Send Money</div></div>
+        <div class="cap-item"><div class="cap-icon">&#128176;</div><div class="cap-label">Send Money</div><div style="font-size:10px;color:var(--yellow);margin-top:4px">Coming Soon</div></div>
         <div class="cap-item"><div class="cap-icon">&#9992;</div><div class="cap-label">Book Flights</div><div style="font-size:10px;color:var(--yellow);margin-top:4px">Coming Soon</div></div>
         <div class="cap-item"><div class="cap-icon">&#128722;</div><div class="cap-label">Shop Online</div><div style="font-size:10px;color:var(--yellow);margin-top:4px">Coming Soon</div></div>
         <div class="cap-item"><div class="cap-icon">&#128179;</div><div class="cap-label">Pay Bills</div><div style="font-size:10px;color:var(--yellow);margin-top:4px">Coming Soon</div></div>
