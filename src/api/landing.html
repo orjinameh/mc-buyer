@@ -9,6 +9,63 @@
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
     .screen{display:none;min-height:100vh}.screen.active{display:flex;flex-direction:column}
+
+    /* Marketing */
+    .marketing{min-height:100vh;display:flex;flex-direction:column}
+    .mkt-header{padding:20px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+    .mkt-logo{display:flex;align-items:center;gap:10px}
+    .mkt-logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#000}
+    .mkt-logo-text{font-size:15px;font-weight:600}
+    .mkt-nav{display:flex;gap:12px;align-items:center}
+    .mkt-nav a{font-size:13px;color:var(--text-secondary);text-decoration:none;cursor:pointer}.mkt-nav a:hover{color:var(--text)}
+    .mkt-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;max-width:800px;margin:0 auto}
+    .mkt-hero h1{font-size:48px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
+    .mkt-hero h1 .green{color:var(--green)}
+    .mkt-hero .tagline{font-size:18px;color:var(--text-secondary);margin-bottom:40px;max-width:500px}
+    .mkt-hero .cta-row{display:flex;gap:12px;margin-bottom:60px}
+    .mkt-btn{padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;border:none}
+    .mkt-btn.primary{background:var(--green);color:#000}.mkt-btn.primary:hover{background:#16a34a}
+    .mkt-btn.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}.mkt-btn.secondary:hover{border-color:var(--text-muted)}
+
+    .ai-carousel{display:flex;gap:16px;margin-bottom:60px;align-items:center}
+    .ai-pill{padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:100px;font-size:14px;font-weight:500;color:var(--text-secondary);display:flex;align-items:center;gap:8px;transition:all .3s}
+    .ai-pill.active{border-color:var(--green);color:var(--text);background:var(--green-dim)}
+    .ai-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted)}
+    .ai-pill.active .dot{background:var(--green)}
+
+    .platforms{width:100%;max-width:960px;margin:0 auto;padding:0 24px 80px}
+    .platforms-title{font-size:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;text-align:center}
+    .platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .platform-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;cursor:pointer;transition:all .2s}
+    .platform-card:hover{border-color:var(--border-focus);transform:translateY(-2px)}
+    .platform-card.selected{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+    .platform-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin-bottom:12px}
+    .platform-icon.gpt{background:#10a37f;color:#fff}
+    .platform-icon.claude{background:#d97757;color:#fff}
+    .platform-icon.grok{background:#1d9bf0;color:#fff}
+    .platform-icon.mcp{background:var(--surface-2);border:1px solid var(--border);color:var(--text)}
+    .platform-card h3{font-size:16px;font-weight:600;margin-bottom:4px}
+    .platform-card p{font-size:13px;color:var(--text-secondary)}
+
+    /* Setup Modal */
+    .setup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
+    .setup-overlay.open{display:flex}
+    .setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
+    .setup-head{padding:24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px}
+    .setup-head h2{font-size:18px;font-weight:600}
+    .setup-close{margin-left:auto;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:20px;padding:4px}.setup-close:hover{color:var(--text)}
+    .setup-body{padding:24px}
+    .setup-step{display:flex;gap:16px;margin-bottom:24px}
+    .setup-step:last-child{margin-bottom:0}
+    .setup-num{width:28px;height:28px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+    .setup-step-content{flex:1}
+    .setup-step-content h4{font-size:14px;font-weight:600;margin-bottom:4px}
+    .setup-step-content p{font-size:13px;color:var(--text-secondary);line-height:1.5}
+    .setup-url{display:flex;gap:8px;margin-top:8px}
+    .setup-url input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'SF Mono','Fira Code',monospace;outline:none}
+    .setup-link{display:inline-block;margin-top:6px;font-size:13px;color:var(--green);text-decoration:none;cursor:pointer}.setup-link:hover{text-decoration:underline}
+
+    /* Onboarding */
     .center{max-width:440px;width:100%;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;justify-content:center;min-height:100vh}
     .logo{width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#000;margin-bottom:24px}
     h1{font-size:22px;font-weight:600;color:var(--text);margin-bottom:6px}
@@ -17,10 +74,6 @@
     .btn-green{background:var(--green);color:#000}.btn-green:hover{background:#16a34a}
     .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}.btn-ghost:hover{border-color:var(--text-secondary);color:var(--text)}
     .btn-red{background:var(--red-dim);color:var(--red);border:1px solid #7f1d1d}.btn-red:hover{background:#7f1d1d}
-    .btn-deny{background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}.btn-deny:hover{border-color:var(--text-muted);color:var(--text)}
-    .btn-approve{background:var(--green);color:#000}.btn-approve:hover{background:#16a34a}
-    .btn-lg{width:100%;padding:14px;font-size:15px;font-weight:600;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:none;margin-top:24px}
-    .btn-lg.green{background:var(--green);color:#000}.btn-lg.green:hover{background:#16a34a}
     .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500}
     .badge-green{background:var(--green-dim);color:var(--green)}
     .badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
@@ -41,7 +94,8 @@
     .step.done .step-num{background:var(--green);border-color:var(--green);color:#000}
     .step-title{font-size:14px;font-weight:600;color:var(--text)}
     .step-desc{font-size:13px;color:var(--text-secondary);line-height:1.5}
-    .check{font-size:14px}
+    .btn-lg{width:100%;padding:14px;font-size:15px;font-weight:600;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:none;margin-top:24px}
+    .btn-lg.green{background:var(--green);color:#000}.btn-lg.green:hover{background:#16a34a}
 
     /* Dashboard */
     .dash{padding:0}
@@ -129,81 +183,110 @@
     .pending-value.amount{color:var(--green);font-size:18px;font-weight:700}
     .pending-actions{display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--border)}
     .pending-actions .btn{flex:1;padding:10px;font-size:13px}
+    .btn-deny{background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}.btn-deny:hover{border-color:var(--text-muted);color:var(--text)}
+    .btn-approve{background:var(--green);color:#000}.btn-approve:hover{background:#16a34a}
   </style>
 </head>
 <body>
 
+  <!-- MARKETING LANDING -->
+  <div id="marketing" class="screen marketing active">
+    <div class="mkt-header">
+      <div class="mkt-logo"><div class="mkt-logo-icon">M</div><span class="mkt-logo-text">MC Buyer</span></div>
+      <div class="mkt-nav">
+        <a onclick="showScreen('onboarding')">Get Started</a>
+        <a onclick="showScreen('onboarding')">Sign In</a>
+      </div>
+    </div>
+
+    <div class="mkt-hero">
+      <h1>Your AI can now <span class="green">pay</span></h1>
+      <p class="tagline">Store your Stellar credentials once. Let AI agents trade, book, and spend on your behalf — within limits you set.</p>
+
+      <div class="ai-carousel">
+        <div class="ai-pill active"><span class="dot"></span>ChatGPT</div>
+        <div class="ai-pill"><span class="dot"></span>Claude</div>
+        <div class="ai-pill"><span class="dot"></span>Grok</div>
+      </div>
+
+      <div class="cta-row">
+        <button class="mkt-btn primary" onclick="showScreen('onboarding')">Get Started</button>
+        <button class="mkt-btn secondary" onclick="document.getElementById('platforms').scrollIntoView({behavior:'smooth'})">See how it works</button>
+      </div>
+    </div>
+
+    <div class="platforms" id="platforms">
+      <div class="platforms-title">Connect your AI</div>
+      <div class="platform-grid">
+        <div class="platform-card" onclick="openSetup('chatgpt')">
+          <div class="platform-icon gpt">G</div>
+          <h3>ChatGPT</h3>
+          <p>Add MC Buyer as a plugin and complete OAuth to start paying from ChatGPT.</p>
+        </div>
+        <div class="platform-card" onclick="openSetup('claude')">
+          <div class="platform-icon claude">C</div>
+          <h3>Claude</h3>
+          <p>Add MC Buyer as a custom connector and authorize spending permissions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETUP MODAL -->
+  <div class="setup-overlay" id="setup-modal">
+    <div class="setup-card">
+      <div class="setup-head">
+        <div class="platform-icon" id="setup-icon" style="width:36px;height:36px;font-size:16px">G</div>
+        <h2 id="setup-title">Connect ChatGPT</h2>
+        <button class="setup-close" onclick="closeSetup()">&times;</button>
+      </div>
+      <div class="setup-body" id="setup-body"></div>
+    </div>
+  </div>
+
   <!-- ONBOARDING -->
-  <div id="onboarding" class="screen active">
+  <div id="onboarding" class="screen">
     <div class="center">
       <div class="logo">M</div>
       <h1>Set up MC Buyer</h1>
       <p class="subtitle">Create your account to start letting AI agents spend on your behalf.</p>
-
       <div class="steps">
         <div class="step current" id="step-passkey">
-          <div class="step-header">
-            <div class="step-num" id="step-passkey-num">1</div>
-            <div class="step-title">Set a passkey</div>
-          </div>
-          <div class="step-desc">Used to approve agent operations. Choose something you'll remember.</div>
+          <div class="step-header"><div class="step-num" id="step-passkey-num">1</div><div class="step-title">Set a passkey</div></div>
+          <div class="step-desc">Used to approve agent operations.</div>
           <div id="step-passkey-body" style="margin-top:12px">
-            <div class="form-group" style="margin-bottom:12px">
-              <input type="password" class="form-input" id="ob-passkey" placeholder="Enter a passkey">
-            </div>
+            <div class="form-group" style="margin-bottom:12px"><input type="password" class="form-input" id="ob-passkey" placeholder="Enter a passkey"></div>
             <button class="btn btn-green" onclick="setPasskey()">Set Passkey</button>
           </div>
         </div>
-
         <div class="step locked" id="step-wallet">
-          <div class="step-header">
-            <div class="step-num" id="step-wallet-num">2</div>
-            <div class="step-title">Connect Stellar wallet</div>
-          </div>
-          <div class="step-desc">Your key stays in this browser. Never shared with agents or servers.</div>
+          <div class="step-header"><div class="step-num" id="step-wallet-num">2</div><div class="step-title">Connect Stellar wallet</div></div>
+          <div class="step-desc">Your key stays in this browser.</div>
           <div id="step-wallet-body" style="margin-top:12px;display:none">
-            <div class="form-group" style="margin-bottom:12px">
-              <input type="password" class="form-input mono" id="ob-secret" placeholder="S...">
-            </div>
+            <div class="form-group" style="margin-bottom:12px"><input type="password" class="form-input mono" id="ob-secret" placeholder="S..."></div>
             <button class="btn btn-green" onclick="connectWallet()">Connect Wallet</button>
           </div>
         </div>
-
         <div class="step locked" id="step-limits">
-          <div class="step-header">
-            <div class="step-num" id="step-limits-num">3</div>
-            <div class="step-title">Set spending limits</div>
-          </div>
-          <div class="step-desc">Global limits for all agents combined.</div>
+          <div class="step-header"><div class="step-num" id="step-limits-num">3</div><div class="step-title">Set spending limits</div></div>
+          <div class="step-desc">Global limits for all agents.</div>
           <div id="step-limits-body" style="margin-top:12px;display:none">
             <div style="display:flex;gap:12px;margin-bottom:12px">
-              <div class="form-group" style="margin:0;flex:1">
-                <label class="form-label">Daily (USDC)</label>
-                <input type="number" class="form-input" id="ob-daily" value="100" min="1">
-              </div>
-              <div class="form-group" style="margin:0;flex:1">
-                <label class="form-label">Per transaction (USDC)</label>
-                <input type="number" class="form-input" id="ob-pertx" value="25" min="1">
-              </div>
+              <div class="form-group" style="margin:0;flex:1"><label class="form-label">Daily (USDC)</label><input type="number" class="form-input" id="ob-daily" value="100" min="1"></div>
+              <div class="form-group" style="margin:0;flex:1"><label class="form-label">Per tx (USDC)</label><input type="number" class="form-input" id="ob-pertx" value="25" min="1"></div>
             </div>
             <button class="btn btn-green" onclick="setLimits()">Continue</button>
           </div>
         </div>
       </div>
-
-      <div style="text-align:center;margin-top:24px">
-        <span class="badge badge-green"><span class="dot"></span>MC Buyer v1.2.0</span>
-      </div>
+      <div style="text-align:center;margin-top:24px"><span class="badge badge-green"><span class="dot"></span>MC Buyer v1.2.0</span></div>
     </div>
   </div>
 
   <!-- DASHBOARD -->
   <div id="dashboard" class="screen dash">
     <div class="dash-header">
-      <div class="dash-logo">
-        <div class="dash-logo-icon">M</div>
-        <span class="dash-logo-text">MC Buyer</span>
-      </div>
+      <div class="dash-logo"><div class="dash-logo-icon">M</div><span class="dash-logo-text">MC Buyer</span></div>
       <div class="dash-nav">
         <a class="active" onclick="showDashTab('agents')">Agents</a>
         <a onclick="showDashTab('pending')">Pending</a>
@@ -213,13 +296,9 @@
       <div><span class="badge badge-green"><span class="dot"></span>Connected</span></div>
     </div>
 
-    <!-- Agents Tab -->
     <div id="tab-agents" class="dash-body">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-        <div>
-          <div class="dash-title">Agent Clients</div>
-          <div class="dash-subtitle" style="margin-bottom:0">Manage which agents can access your credentials.</div>
-        </div>
+        <div><div class="dash-title">Agent Clients</div><div class="dash-subtitle" style="margin-bottom:0">Manage which agents can access your credentials.</div></div>
         <button class="btn btn-green" onclick="showScreen('create-agent')">+ New Agent</button>
       </div>
       <div class="stat-row">
@@ -229,74 +308,45 @@
       </div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Connected Agents</span></div>
-        <table>
-          <thead><tr><th>Agent</th><th>Operations</th><th>Limits</th><th>Mode</th><th>Status</th></tr></thead>
-          <tbody id="agents-table"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet. Create one to get started.</td></tr></tbody>
-        </table>
+        <table><thead><tr><th>Agent</th><th>Operations</th><th>Limits</th><th>Mode</th><th>Status</th></tr></thead>
+        <tbody id="agents-table"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet</td></tr></tbody></table>
       </div>
-      <div class="kill-switch">
-        <h3>Kill Switch</h3>
-        <p>Immediately revoke access for all agent clients.</p>
-        <button class="btn btn-red" onclick="killSwitch()">Revoke All Agents</button>
-      </div>
+      <div class="kill-switch"><h3>Kill Switch</h3><p>Revoke all agent clients immediately.</p><button class="btn btn-red" onclick="killSwitch()">Revoke All</button></div>
     </div>
 
-    <!-- Pending Tab -->
     <div id="tab-pending" class="dash-body" style="display:none">
       <div class="dash-title">Pending Approvals</div>
       <div class="dash-subtitle">Operations waiting for your approval.</div>
       <div id="pending-list"><div class="empty-state"><p>No pending operations</p></div></div>
     </div>
 
-    <!-- Activity Tab -->
     <div id="tab-activity" class="dash-body" style="display:none">
       <div class="dash-title">Audit Log</div>
       <div class="dash-subtitle">Every request, approval, and denial is recorded.</div>
       <div class="table-card"><div id="activity-log"><div class="empty-state"><p>No activity yet</p></div></div></div>
     </div>
 
-    <!-- Settings Tab -->
     <div id="tab-settings" class="dash-body" style="display:none">
       <div class="dash-title">Settings</div>
-      <div class="dash-subtitle">Manage your account and MCP connection.</div>
-
+      <div class="dash-subtitle">MCP connection and account management.</div>
       <div class="mcp-box">
-        <h3>MCP Connection</h3>
-        <div class="step-desc" style="margin-bottom:12px">Add this URL to your AI agent's MCP connector settings.</div>
-        <div class="copy-row">
-          <input class="copy-input" id="mcp-url" readonly>
-          <button class="btn btn-ghost" onclick="copyMcpUrl()">Copy</button>
-        </div>
-        <div class="step-desc" style="margin-top:8px">When creating an agent client, you'll get a client key. Use both in your agent's MCP config.</div>
+        <h3>MCP Server URL</h3>
+        <div class="step-desc" style="margin-bottom:12px">Add this URL to your AI agent's MCP connector.</div>
+        <div class="copy-row"><input class="copy-input" id="mcp-url" readonly><button class="btn btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('mcp-url').value);showToast('Copied')">Copy</button></div>
       </div>
-
-      <div class="wallet-card">
-        <div class="stat-label">Wallet</div>
-        <div class="wallet-address" id="settings-address">—</div>
-        <div class="wallet-balance" id="settings-balance">—</div>
-        <div class="wallet-fiat">USDC</div>
-      </div>
-
-      <div class="kill-switch" style="margin-top:20px">
-        <h3>Danger Zone</h3>
-        <p>Clear all data from this browser.</p>
-        <button class="btn btn-red" onclick="resetAccount()">Reset Account</button>
-      </div>
+      <div class="wallet-card"><div class="stat-label">Wallet</div><div class="wallet-address" id="settings-address">—</div><div class="wallet-balance" id="settings-balance">—</div><div class="wallet-fiat">USDC</div></div>
+      <div class="kill-switch" style="margin-top:20px"><h3>Danger Zone</h3><p>Clear all data.</p><button class="btn btn-red" onclick="resetAccount()">Reset Account</button></div>
     </div>
   </div>
 
-  <!-- CREATE AGENT CLIENT -->
+  <!-- CREATE AGENT -->
   <div id="create-agent" class="screen">
     <div class="center" style="max-width:520px">
       <button class="back-btn" onclick="showScreen('dashboard')">&larr; Back</button>
       <h1>Create agent client</h1>
-      <p class="subtitle">Define what this agent can access and how much it can spend.</p>
-      <div class="form-group">
-        <label class="form-label">Agent name</label>
-        <input type="text" class="form-input" id="agent-name" placeholder="e.g. Travel Booker">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Allowed operations</label>
+      <p class="subtitle">Define what this agent can access.</p>
+      <div class="form-group"><label class="form-label">Agent name</label><input type="text" class="form-input" id="agent-name" placeholder="e.g. Travel Booker"></div>
+      <div class="form-group"><label class="form-label">Allowed operations</label>
         <div class="checkbox-group">
           <div class="checkbox-item checked" onclick="toggleCheck(this)"><input type="checkbox" id="op-pay" checked><div><label for="op-pay">Make payments</label><div class="desc">Send USDC to merchants</div></div></div>
           <div class="checkbox-item" onclick="toggleCheck(this)"><input type="checkbox" id="op-swap"><div><label for="op-swap">Swap tokens</label><div class="desc">Exchange between assets</div></div></div>
@@ -307,16 +357,15 @@
         <div class="form-group" style="flex:1"><label class="form-label">Daily limit (USDC)</label><input type="number" class="form-input" id="agent-daily" value="50" min="1"></div>
         <div class="form-group" style="flex:1"><label class="form-label">Per-tx limit (USDC)</label><input type="number" class="form-input" id="agent-per-tx" value="10" min="1"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Approval mode</label>
+      <div class="form-group"><label class="form-label">Approval mode</label>
         <div class="checkbox-group">
           <div class="checkbox-item checked" onclick="selectMode(this)"><input type="radio" name="mode" id="mode-always" checked><div><label for="mode-always">Always ask</label><div class="desc">Every operation requires your passkey</div></div></div>
-          <div class="checkbox-item" onclick="selectMode(this)"><input type="radio" name="mode" id="mode-auto"><div><label for="mode-auto">Autonomous within policy</label><div class="desc">Agent acts without approval, inside your limits</div></div></div>
+          <div class="checkbox-item" onclick="selectMode(this)"><input type="radio" name="mode" id="mode-auto"><div><label for="mode-auto">Autonomous</label><div class="desc">Agent acts without approval, inside your limits</div></div></div>
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-top:8px">
         <button class="btn btn-ghost" onclick="showScreen('dashboard')" style="flex:1;padding:12px">Cancel</button>
-        <button class="btn btn-green" onclick="createAgent()" style="flex:1;padding:12px">Create Agent Client</button>
+        <button class="btn btn-green" onclick="createAgent()" style="flex:1;padding:12px">Create</button>
       </div>
     </div>
   </div>
@@ -325,18 +374,11 @@
   <div id="agent-created" class="screen">
     <div class="center" style="max-width:520px">
       <div class="logo" style="background:var(--green-dim);color:var(--green)">&#10003;</div>
-      <h1>Agent client created</h1>
+      <h1>Agent created</h1>
       <p class="subtitle">Save this client key. It will not be shown again.</p>
-      <div class="key-warning">Treat this key like a password. Anyone with it can make requests as this agent.</div>
+      <div class="key-warning">Treat this key like a password.</div>
       <div class="key-display" id="created-key"></div>
-      <div class="form-group">
-        <label class="form-label">MCP connector URL</label>
-        <div class="copy-row">
-          <input type="text" class="form-input mono" id="created-mcp" readonly style="font-size:12px">
-          <button class="btn btn-ghost" onclick="copyCreatedMcp()">Copy</button>
-        </div>
-        <p class="form-hint">Add this URL + client key to your agent's MCP config.</p>
-      </div>
+      <div class="form-group"><label class="form-label">MCP URL</label><div class="copy-row"><input type="text" class="form-input mono" id="created-mcp" readonly style="font-size:12px"><button class="btn btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('created-mcp').value);showToast('Copied')">Copy</button></div><p class="form-hint">Use this URL + client key in your agent's MCP config.</p></div>
       <button class="btn-lg green" onclick="showScreen('dashboard')">Go to Dashboard</button>
     </div>
   </div>
@@ -345,10 +387,7 @@
   <div id="agent-detail" class="screen">
     <div class="center" style="max-width:520px">
       <button class="back-btn" onclick="showScreen('dashboard')">&larr; Back</button>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-        <h1 id="detail-name" style="margin:0">—</h1>
-        <span class="badge badge-green" id="detail-status"><span class="dot"></span>Active</span>
-      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px"><h1 id="detail-name" style="margin:0">—</h1><span class="badge badge-green" id="detail-status"><span class="dot"></span>Active</span></div>
       <div class="detail-card">
         <div class="detail-row"><span class="detail-label">Agent ID</span><span class="detail-value mono" id="detail-id">—</span></div>
         <div class="detail-row"><span class="detail-label">Client Key</span><span class="detail-value mono" id="detail-key">—</span></div>
@@ -364,9 +403,9 @@
   </div>
 
   <!-- PASSKEY MODAL -->
-  <div class="passkey-overlay" id="passkey-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center">
+  <div class="setup-overlay" id="passkey-modal">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:360px;max-width:95vw;padding:32px;text-align:center">
-      <div style="width:48px;height:48px;background:var(--surface-2);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:20px">&#128274;</div>
+      <div style="font-size:32px;margin-bottom:16px">&#128274;</div>
       <h3 style="font-size:16px;font-weight:600;margin-bottom:8px">Enter passkey</h3>
       <p style="font-size:13px;color:var(--text-secondary);margin-bottom:24px" id="passkey-prompt">Confirm with your passkey.</p>
       <input type="password" class="form-input" id="passkey-input" placeholder="Your passkey" style="text-align:center;font-family:monospace;margin-bottom:16px">
@@ -380,6 +419,8 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    const MCP_URL=window.location.origin+'/mcp';
+
     // --- State ---
     function getAccount(){return JSON.parse(localStorage.getItem('mc-account')||'null')}
     function setAccount(a){localStorage.setItem('mc-account',JSON.stringify(a))}
@@ -393,11 +434,12 @@
     // --- Init ---
     (function(){
       const acct=getAccount();
-      if(acct&&acct.onboarded)showScreen('dashboard');
-      else if(acct&&acct.passkey)setStep('wallet');
-      else if(acct)setStep('passkey');
-      else{setAccount({passkey:null,secret:null,dailyLimit:100,perTxLimit:25,onboarded:false});showScreen('onboarding')}
-      document.getElementById('mcp-url').value=window.location.origin+'/mcp';
+      if(acct&&acct.onboarded){showScreen('dashboard');document.getElementById('mcp-url').value=MCP_URL}
+      else if(acct){showScreen('onboarding');if(acct.passkey)setStep('wallet');else setStep('passkey')}
+      else{setAccount({passkey:null,secret:null,dailyLimit:100,perTxLimit:25,onboarded:false});showScreen('marketing')}
+      // Animate AI carousel
+      const pills=document.querySelectorAll('.ai-pill');let idx=0;
+      setInterval(()=>{pills.forEach(p=>p.classList.remove('active'));pills[idx].classList.add('active');idx=(idx+1)%pills.length},2000);
     })();
 
     // --- Routing ---
@@ -413,204 +455,118 @@
       event.target.classList.add('active');
       if(tab==='pending')renderPending();
       if(tab==='activity')renderActivity();
-      if(tab==='settings')renderSettings();
+      if(tab==='settings'){document.getElementById('mcp-url').value=MCP_URL;document.getElementById('settings-address').textContent=getAccount()?.address||'—'}
     }
 
-    // --- Onboarding Steps ---
+    // --- Setup Modal ---
+    const SETUP={
+      chatgpt:`<div class="setup-step"><div class="setup-num">1</div><div class="setup-step-content"><h4>Copy the URL below</h4><div class="setup-url"><input value="${MCP_URL}" readonly><button class="btn btn-ghost" onclick="navigator.clipboard.writeText('${MCP_URL}');showToast('Copied')">Copy</button></div></div></div>
+<div class="setup-step"><div class="setup-num">2</div><div class="setup-step-content"><h4>Open ChatGPT Settings</h4><p>On ChatGPT web, go to <strong>Settings → Security</strong> and turn on <strong>Developer mode</strong>. Setup must be completed on web — Developer mode is not available in the mobile app.</p><a class="setup-link" href="https://chatgpt.com/#settings" target="_blank">Open ChatGPT Settings</a></div></div>
+<div class="setup-step"><div class="setup-num">3</div><div class="setup-step-content"><h4>Add MC Buyer plugin</h4><p>In Plugins, select <strong>Browse plugins</strong>, then hit <strong>+</strong> and choose <strong>New Plugin</strong>. Name it "MC Buyer" and paste the URL from step 1.<br><br><strong>Required:</strong> Authentication: <strong>OAuth</strong> — do not leave "No Auth" selected.</p></div></div>
+<div class="setup-step"><div class="setup-num">4</div><div class="setup-step-content"><h4>Connect and authorize</h4><p>Save the plugin, connect it, and complete OAuth authorization. You'll be redirected back to MC Buyer to approve access.</p></div></div>`,
+      claude:`<div class="setup-step"><div class="setup-num">1</div><div class="setup-step-content"><h4>Copy the URL below</h4><div class="setup-url"><input value="${MCP_URL}" readonly><button class="btn btn-ghost" onclick="navigator.clipboard.writeText('${MCP_URL}');showToast('Copied')">Copy</button></div></div></div>
+<div class="setup-step"><div class="setup-num">2</div><div class="setup-step-content"><h4>Open Claude</h4><p>The MC Buyer connector arrives pre-filled — just tap <strong>Add</strong>. Make sure you're signed in to Claude in this browser first.</p><a class="setup-link" href="https://claude.ai/settings" target="_blank">Open Claude Settings</a></div></div>
+<div class="setup-step"><div class="setup-num">3</div><div class="setup-step-content"><h4>Add manually (if needed)</h4><p>If the pre-filled window doesn't appear: go to <strong>Customize → Connectors</strong>, add a custom connector, set Name to "MC Buyer", and paste the URL from step 1.</p></div></div>
+<div class="setup-step"><div class="setup-num">4</div><div class="setup-step-content"><h4>Connect</h4><p>Hit <strong>Connect</strong> next to the new MC Buyer connector and sign in to link your account.</p></div></div>`
+    };
+    const ICONS={chatgpt:'G',claude:'C'};
+
+    function openSetup(platform){
+      document.getElementById('setup-icon').textContent=ICONS[platform];
+      document.getElementById('setup-icon').className='platform-icon '+platform;
+      document.getElementById('setup-title').textContent='Connect '+platform.charAt(0).toUpperCase()+platform.slice(1);
+      document.getElementById('setup-body').innerHTML=SETUP[platform];
+      document.getElementById('setup-modal').classList.add('open');
+    }
+    function closeSetup(){document.getElementById('setup-modal').classList.remove('open')}
+
+    // --- Onboarding ---
     function setStep(step){
-      const steps=['passkey','wallet','limits'];
-      const idx=steps.indexOf(step);
+      const steps=['passkey','wallet','limits'];const idx=steps.indexOf(step);
       steps.forEach((s,i)=>{
-        const el=document.getElementById('step-'+s);
-        const num=document.getElementById('step-'+s+'-num');
-        const body=document.getElementById('step-'+s+'-body');
+        const el=document.getElementById('step-'+s),num=document.getElementById('step-'+s+'-num'),body=document.getElementById('step-'+s+'-body');
         if(i<idx){el.className='step done';num.innerHTML='&#10003;';body.style.display='none'}
         else if(i===idx){el.className='step current';num.textContent=i+1;body.style.display='block'}
         else{el.className='step locked';num.textContent=i+1;body.style.display='none'}
       });
     }
-
-    function setPasskey(){
-      const pk=document.getElementById('ob-passkey').value.trim();
-      if(!pk){showToast('Enter a passkey');return}
-      const acct=getAccount();
-      acct.passkey=btoa(pk);
-      setAccount(acct);
-      showToast('Passkey set');
-      setStep('wallet');
-    }
-
-    function connectWallet(){
-      const key=document.getElementById('ob-secret').value.trim();
-      if(!key||!key.startsWith('S')){showToast('Enter a valid Stellar secret key');return}
-      const acct=getAccount();
-      acct.secret=btoa(key);
-      acct.address='G'+key.slice(1,56);
-      setAccount(acct);
-      showToast('Wallet connected');
-      setStep('limits');
-    }
-
-    function setLimits(){
-      const acct=getAccount();
-      acct.dailyLimit=parseFloat(document.getElementById('ob-daily').value)||100;
-      acct.perTxLimit=parseFloat(document.getElementById('ob-pertx').value)||25;
-      acct.onboarded=true;
-      setAccount(acct);
-      showToast('Account ready');
-      showScreen('dashboard');
-    }
+    function setPasskey(){const pk=document.getElementById('ob-passkey').value.trim();if(!pk){showToast('Enter a passkey');return}const a=getAccount();a.passkey=btoa(pk);setAccount(a);showToast('Passkey set');setStep('wallet')}
+    function connectWallet(){const k=document.getElementById('ob-secret').value.trim();if(!k||!k.startsWith('S')){showToast('Enter a valid Stellar secret key');return}const a=getAccount();a.secret=btoa(k);a.address='G'+k.slice(1,56);setAccount(a);showToast('Wallet connected');setStep('limits')}
+    function setLimits(){const a=getAccount();a.dailyLimit=parseFloat(document.getElementById('ob-daily').value)||100;a.perTxLimit=parseFloat(document.getElementById('ob-pertx').value)||25;a.onboarded=true;setAccount(a);showToast('Account ready');showScreen('dashboard')}
 
     // --- Dashboard ---
-    function refreshDashboard(){
-      const acct=getAccount();
-      const agents=getAgents();
-      const active=agents.filter(a=>a.enabled);
-      document.getElementById('dash-balance').textContent='0.00 USDC';
-      document.getElementById('dash-daily').textContent='$0.00';
-      document.getElementById('dash-agents').textContent=active.length;
-      renderAgentTable();
-    }
-
+    function refreshDashboard(){const agents=getAgents();const active=agents.filter(a=>a.enabled);document.getElementById('dash-balance').textContent='0.00 USDC';document.getElementById('dash-daily').textContent='$0.00';document.getElementById('dash-agents').textContent=active.length;renderAgentTable()}
     function renderAgentTable(){
-      const agents=getAgents();
-      const tbody=document.getElementById('agents-table');
-      if(!agents.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet. Create one to get started.</td></tr>';return}
+      const agents=getAgents();const tbody=document.getElementById('agents-table');
+      if(!agents.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet</td></tr>';return}
       tbody.innerHTML=agents.map(a=>{
         const mode=a.approvalMode==='always-ask'?'Always Ask':'Autonomous';
-        return '<tr class="clickable" onclick="showAgentDetail(\''+a.id+'\')">'
-          +'<td><div class="agent-name">'+esc(a.name)+'</div><div class="agent-id">'+a.id+'</div></td>'
-          +'<td><div class="perm-list">'+a.operations.map(p=>'<span class="perm-tag">'+p+'</span>').join('')+'</div></td>'
-          +'<td><span class="limit-cell">$'+a.dailyLimit+'/$'+a.perTxLimit+'</span></td>'
-          +'<td><span class="limit-cell">'+mode+'</span></td>'
-          +'<td>'+(a.enabled?'<span class="status-active">Active</span>':'<span class="status-revoked">Revoked</span>')+'</td></tr>';
+        return '<tr class="clickable" onclick="showAgentDetail(\''+a.id+'\')"><td><div class="agent-name">'+esc(a.name)+'</div><div class="agent-id">'+a.id+'</div></td><td><div class="perm-list">'+a.operations.map(p=>'<span class="perm-tag">'+p+'</span>').join('')+'</div></td><td><span class="limit-cell">$'+a.dailyLimit+'/$'+a.perTxLimit+'</span></td><td><span class="limit-cell">'+mode+'</span></td><td>'+(a.enabled?'<span class="status-active">Active</span>':'<span class="status-revoked">Revoked</span>')+'</td></tr>';
       }).join('');
     }
 
     // --- Create Agent ---
     function toggleCheck(el){const cb=el.querySelector('input[type="checkbox"]');cb.checked=!cb.checked;el.classList.toggle('checked',cb.checked)}
     function selectMode(el){el.closest('.checkbox-group').querySelectorAll('.checkbox-item').forEach(i=>i.classList.remove('checked'));el.classList.add('checked');el.querySelector('input[type="radio"]').checked=true}
-
     function createAgent(){
-      const name=document.getElementById('agent-name').value.trim();
-      if(!name){showToast('Enter a name');return}
-      const ops=[];
-      if(document.getElementById('op-pay').checked)ops.push('pay');
-      if(document.getElementById('op-swap').checked)ops.push('swap');
-      if(document.getElementById('op-sign').checked)ops.push('sign');
+      const name=document.getElementById('agent-name').value.trim();if(!name){showToast('Enter a name');return}
+      const ops=[];if(document.getElementById('op-pay').checked)ops.push('pay');if(document.getElementById('op-swap').checked)ops.push('swap');if(document.getElementById('op-sign').checked)ops.push('sign');
       if(!ops.length){showToast('Select at least one operation');return}
       const mode=document.querySelector('input[name="mode"]:checked').id==='mode-always'?'always-ask':'autonomous';
-      const daily=document.getElementById('agent-daily').value;
-      const pertx=document.getElementById('agent-per-tx').value;
       const clientKey='mc_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
-      const mcpUrl=window.location.origin+'/mcp';
-      const agent={id:'agent_'+Date.now(),name,clientKey,mcpUrl,operations:ops,dailyLimit:daily,perTxLimit:pertx,approvalMode:mode,enabled:true,createdAt:new Date().toISOString()};
+      const agent={id:'agent_'+Date.now(),name,clientKey,mcpUrl:MCP_URL,operations:ops,dailyLimit:document.getElementById('agent-daily').value,perTxLimit:document.getElementById('agent-per-tx').value,approvalMode:mode,enabled:true,createdAt:new Date().toISOString()};
       const agents=getAgents();agents.push(agent);setAgents(agents);
       addAudit('created',name,agent.id,'Agent client created');
       document.getElementById('created-key').textContent=clientKey;
-      document.getElementById('created-mcp').value=mcpUrl;
+      document.getElementById('created-mcp').value=MCP_URL;
       showScreen('agent-created');
     }
-
-    function copyCreatedMcp(){navigator.clipboard.writeText(document.getElementById('created-mcp').value);showToast('MCP URL copied')}
 
     // --- Agent Detail ---
     let currentDetailId=null;
     function showAgentDetail(id){
-      currentDetailId=id;
-      const agent=getAgents().find(a=>a.id===id);if(!agent)return;
+      currentDetailId=id;const agent=getAgents().find(a=>a.id===id);if(!agent)return;
       document.getElementById('detail-name').textContent=agent.name;
       document.getElementById('detail-id').textContent=agent.id;
       document.getElementById('detail-key').textContent=agent.clientKey.slice(0,12)+'...'+agent.clientKey.slice(-6);
       document.getElementById('detail-mcp').textContent=agent.mcpUrl;
-      document.getElementById('detail-mode').textContent=agent.approvalMode==='always-ask'?'Always Ask':'Autonomous Within Policy';
+      document.getElementById('detail-mode').textContent=agent.approvalMode==='always-ask'?'Always Ask':'Autonomous';
       document.getElementById('detail-daily').textContent='$'+agent.dailyLimit;
       document.getElementById('detail-pertx').textContent='$'+agent.perTxLimit;
       document.getElementById('detail-ops').textContent=agent.operations.join(', ');
       document.getElementById('detail-created').textContent=new Date(agent.createdAt).toLocaleDateString();
-      const badge=document.getElementById('detail-status');
-      if(agent.enabled){badge.className='badge badge-green';badge.innerHTML='<span class="dot"></span>Active'}
-      else{badge.className='badge';badge.style.background='var(--red-dim)';badge.style.color='var(--red)';badge.innerHTML='<span class="dot"></span>Revoked'}
+      const b=document.getElementById('detail-status');
+      if(agent.enabled){b.className='badge badge-green';b.innerHTML='<span class="dot"></span>Active'}else{b.className='badge';b.style.background='var(--red-dim)';b.style.color='var(--red)';b.innerHTML='<span class="dot"></span>Revoked'}
       showScreen('agent-detail');
     }
+    function revokeAgent(){if(!currentDetailId||!confirm('Revoke this agent?'))return;const a=getAgents();const ag=a.find(x=>x.id===currentDetailId);if(ag){ag.enabled=false;setAgents(a);addAudit('revoked',ag.name,ag.id,'Revoked');showToast('Revoked');showScreen('dashboard')}}
 
-    function revokeAgent(){
-      if(!currentDetailId||!confirm('Revoke this agent?'))return;
-      const agents=getAgents();const agent=agents.find(a=>a.id===currentDetailId);
-      if(agent){agent.enabled=false;setAgents(agents);addAudit('revoked',agent.name,agent.id,'Revoked');showToast('Agent revoked');showScreen('dashboard')}
-    }
-
-    // --- Pending Approvals ---
+    // --- Pending ---
     function renderPending(){
-      const pending=getPending();
-      const el=document.getElementById('pending-list');
+      const pending=getPending();const el=document.getElementById('pending-list');
       if(!pending.length){el.innerHTML='<div class="empty-state"><p>No pending operations</p></div>';return}
-      el.innerHTML=pending.map(op=>'<div class="pending-card">'
-        +'<div class="pending-header"><span style="font-weight:600;font-size:14px">'+esc(op.agentName)+'</span><span style="font-size:12px;color:var(--text-muted)">'+timeAgo(op.createdAt)+'</span></div>'
-        +'<div class="pending-body">'
-        +'<div class="pending-row"><span class="pending-label">Operation</span><span class="pending-value">'+esc(op.operation)+'</span></div>'
-        +'<div class="pending-row"><span class="pending-label">Destination</span><span class="pending-value mono" style="font-size:12px">'+esc(op.destination)+'</span></div>'
-        +'<div class="pending-row"><span class="pending-label">Amount</span><span class="pending-value amount">$'+op.amount+' USDC</span></div>'
-        +'</div>'
-        +'<div class="pending-actions">'
-        +'<button class="btn btn-deny" onclick="denyPending(\''+op.id+'\')">Deny</button>'
-        +'<button class="btn btn-approve" onclick="approvePending(\''+op.id+'\')">Approve</button>'
-        +'</div></div>').join('');
+      el.innerHTML=pending.map(op=>'<div class="pending-card"><div class="pending-header"><span style="font-weight:600">'+esc(op.agentName)+'</span><span style="font-size:12px;color:var(--text-muted)">'+timeAgo(op.createdAt)+'</span></div><div class="pending-body"><div class="pending-row"><span class="pending-label">Operation</span><span class="pending-value">'+esc(op.operation)+'</span></div><div class="pending-row"><span class="pending-label">Destination</span><span class="pending-value mono" style="font-size:12px">'+esc(op.destination)+'</span></div><div class="pending-row"><span class="pending-label">Amount</span><span class="pending-value amount">$'+op.amount+' USDC</span></div></div><div class="pending-actions"><button class="btn btn-deny" onclick="denyPending(\''+op.id+'\')">Deny</button><button class="btn btn-approve" onclick="approvePending(\''+op.id+'\')">Approve</button></div></div>').join('');
     }
-
-    function approvePending(id){
-      openPasskey('Approve this operation?',function(){
-        const pending=getPending();const op=pending.find(p=>p.id===id);
-        if(op){setPending(pending.filter(p=>p.id!==id));addAudit('approved',op.agentName,op.agentId,op.operation+' $'+op.amount+' to '+op.destination);showToast('Approved');renderPending()}
-      });
-    }
-
-    function denyPending(id){
-      const pending=getPending();const op=pending.find(p=>p.id===id);
-      if(op){setPending(pending.filter(p=>p.id!==id));addAudit('denied',op.agentName,op.agentId,op.operation+' denied');showToast('Denied');renderPending()}
-    }
+    function approvePending(id){openPasskey('Approve this operation?',function(){const p=getPending();const op=p.find(x=>x.id===id);if(op){setPending(p.filter(x=>x.id!==id));addAudit('approved',op.agentName,op.agentId,op.operation+' $'+op.amount);showToast('Approved');renderPending()}})}
+    function denyPending(id){const p=getPending();const op=p.find(x=>x.id===id);if(op){setPending(p.filter(x=>x.id!==id));addAudit('denied',op.agentName,op.agentId,op.operation+' denied');showToast('Denied');renderPending()}}
 
     // --- Activity ---
     function renderActivity(){
       const audit=getAudit();const el=document.getElementById('activity-log');
       if(!audit.length){el.innerHTML='<div class="empty-state"><p>No activity yet</p></div>';return}
-      el.innerHTML=audit.slice().reverse().map(a=>{
-        const icon=a.type==='approved'?'&#10003;':a.type==='denied'?'&#10007;':a.type==='revoked'?'&#9888;':'+';
-        return '<div class="activity-item"><div class="activity-icon '+a.type+'">'+icon+'</div><div class="activity-content"><div class="activity-title">'+esc(a.title)+'</div><div class="activity-desc">'+esc(a.desc)+'</div></div><div class="activity-time">'+timeAgo(a.timestamp)+'</div></div>';
-      }).join('');
+      el.innerHTML=audit.slice().reverse().map(a=>{const icon=a.type==='approved'?'&#10003;':a.type==='denied'?'&#10007;':a.type==='revoked'?'&#9888;':'+';return '<div class="activity-item"><div class="activity-icon '+a.type+'">'+icon+'</div><div class="activity-content"><div class="activity-title">'+esc(a.title)+'</div><div class="activity-desc">'+esc(a.desc)+'</div></div><div class="activity-time">'+timeAgo(a.timestamp)+'</div></div>'}).join('');
     }
-    function addAudit(type,agentName,agentId,desc){
-      const audit=getAudit();audit.push({id:'audit_'+Date.now(),type,agentName,agentId,desc,timestamp:new Date().toISOString()});setAudit(audit);
-    }
+    function addAudit(type,agentName,agentId,desc){const a=getAudit();a.push({id:'audit_'+Date.now(),type,agentName,agentId,desc,timestamp:new Date().toISOString()});setAudit(a)}
 
     // --- Settings ---
-    function renderSettings(){
-      const acct=getAccount();if(!acct)return;
-      document.getElementById('settings-address').textContent=acct.address||'—';
-    }
-    function copyMcpUrl(){navigator.clipboard.writeText(document.getElementById('mcp-url').value);showToast('MCP URL copied')}
-    function resetAccount(){
-      if(!confirm('Clear all data?'))return;
-      localStorage.removeItem('mc-account');localStorage.removeItem('mc-agents');localStorage.removeItem('mc-audit');localStorage.removeItem('mc-pending');
-      location.reload();
-    }
-
-    // --- Kill Switch ---
-    function killSwitch(){
-      if(!confirm('Revoke ALL agents?'))return;
-      const agents=getAgents();agents.forEach(a=>{if(a.enabled){a.enabled=false;addAudit('revoked',a.name,a.id,'Kill switch')}});
-      setAgents(agents);showToast('All agents revoked');refreshDashboard();
-    }
+    function resetAccount(){if(!confirm('Clear all data?'))return;localStorage.removeItem('mc-account');localStorage.removeItem('mc-agents');localStorage.removeItem('mc-audit');localStorage.removeItem('mc-pending');location.reload()}
+    function killSwitch(){if(!confirm('Revoke ALL agents?'))return;const a=getAgents();a.forEach(x=>{if(x.enabled){x.enabled=false;addAudit('revoked',x.name,x.id,'Kill switch')}});setAgents(a);showToast('All revoked');refreshDashboard()}
 
     // --- Passkey Modal ---
     let passkeyCb=null;
-    function openPasskey(prompt,cb){document.getElementById('passkey-prompt').textContent=prompt;document.getElementById('passkey-input').value='';document.getElementById('passkey-modal').style.display='flex';passkeyCb=cb}
-    function closePasskey(){document.getElementById('passkey-modal').style.display='none';passkeyCb=null}
-    function verifyPasskey(){
-      const acct=getAccount();const input=document.getElementById('passkey-input').value;
-      if(acct&&acct.passkey&&btoa(input)!==acct.passkey){showToast('Incorrect passkey');return}
-      closePasskey();if(passkeyCb)passkeyCb();
-    }
+    function openPasskey(prompt,cb){document.getElementById('passkey-prompt').textContent=prompt;document.getElementById('passkey-input').value='';document.getElementById('passkey-modal').classList.add('open');passkeyCb=cb}
+    function closePasskey(){document.getElementById('passkey-modal').classList.remove('open');passkeyCb=null}
+    function verifyPasskey(){const a=getAccount();const input=document.getElementById('passkey-input').value;if(a&&a.passkey&&btoa(input)!==a.passkey){showToast('Incorrect');return}closePasskey();if(passkeyCb)passkeyCb()}
 
     // --- Helpers ---
     function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
