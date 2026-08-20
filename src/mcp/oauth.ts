@@ -37,11 +37,20 @@ export interface PendingAuth {
   params: AuthorizationParams;
 }
 
+export interface UserAccount {
+  passkey: string;
+  secret: string;
+  address: string;
+  daily_limit: number;
+  per_tx_limit: number;
+}
+
 export class SimpleOAuthProvider implements OAuthServerProvider {
   private clientsStoreInstance = new InMemoryClientsStore();
   private codes = new Map<string, StoredAuthCode>();
   private tokens = new Map<string, StoredToken>();
   private pendingAuths = new Map<string, PendingAuth>();
+  private users = new Map<string, UserAccount>();
 
   get clientsStore(): OAuthRegisteredClientsStore {
     return this.clientsStoreInstance;
@@ -51,6 +60,10 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
     const sessionId = randomUUID();
     this.pendingAuths.set(sessionId, { client, params });
     return sessionId;
+  }
+
+  getPendingAuth(sessionId: string): PendingAuth | undefined {
+    return this.pendingAuths.get(sessionId);
   }
 
   completePendingAuth(sessionId: string, _provider: string, _email?: string): { redirect: string } | null {

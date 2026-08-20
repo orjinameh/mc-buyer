@@ -61,6 +61,7 @@ async function main() {
   const mcpServerUrl = new URL('/mcp', baseUrl);
 
   const oauthProvider = new SimpleOAuthProvider();
+  const userStore = new Map<string, any>();
   const oauthMetadata = createOAuthMetadata({
     provider: oauthProvider,
     issuerUrl: baseUrl,
@@ -163,7 +164,7 @@ async function main() {
     await transport.handleRequest(req, res);
   });
 
-  // --- Auth Login Routes ---
+  // --- Auth Login & Setup Routes ---
   app.get('/auth/login', (_req, res) => {
     res.sendFile(path.join(process.cwd(), 'src', 'api', 'login.html'));
   });
@@ -174,7 +175,30 @@ async function main() {
       res.status(400).json({ error: 'Missing session_id or redirect_uri' });
       return;
     }
-    const result = oauthProvider.completePendingAuth(session_id, provider || 'email', email);
+    const pending = oauthProvider.getPendingAuth(session_id);
+    if (!pending) {
+      res.status(400).json({ error: 'Invalid or expired session' });
+      return;
+    }
+    const setupUrl = new URL('/auth/setup', externalUrl);
+    setupUrl.searchParams.set('session_id', session_id);
+    res.json({ redirect: setupUrl.toString() });
+  });
+
+  app.get('/auth/setup', (_req, res) => {
+    res.sendFile(path.join(process.cwd(), 'src', 'api', 'setup.html'));
+  });
+
+  app.post('/auth/setup/complete', express.json(), (req, res) => {
+    const { session_id, passkey, secret, address, daily_limit, per_tx_limit, skip } = req.body;
+    if (!session_id) {
+      res.status(400).json({ error: 'Missing session_id' });
+      return;
+    }
+    if (!skip && passkey) {
+      userStore.set(session_id, { passkey, secret, address, daily_limit, per_tx_limit });
+    }
+    const result = oauthProvider.completePendingAuth(session_id, 'email');
     if (!result) {
       res.status(400).json({ error: 'Invalid or expired session' });
       return;
