@@ -18,6 +18,8 @@ import { rateLimit } from './api/rateLimit.js';
 import { idempotency } from './api/idempotency.js';
 import { replayProtection } from './api/replayProtection.js';
 import { config } from './config/env.js';
+import { AuthService } from './auth/service.js';
+import { createAuthRouter } from './auth/router.js';
 
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { mcpAuthRouter, mcpAuthMetadataRouter, getOAuthProtectedResourceMetadataUrl, createOAuthMetadata } from '@modelcontextprotocol/sdk/server/auth/router.js';
@@ -61,7 +63,6 @@ async function main() {
   const mcpServerUrl = new URL('/mcp', baseUrl);
 
   const oauthProvider = new SimpleOAuthProvider(db, externalUrl);
-  const userStore = new Map<string, any>();
   const oauthMetadata = createOAuthMetadata({
     provider: oauthProvider,
     issuerUrl: baseUrl,
@@ -164,25 +165,13 @@ async function main() {
     await transport.handleRequest(req, res);
   });
 
+  // --- Auth ---
+  const auth = new AuthService(db);
+  app.use(createAuthRouter(auth));
+
   // --- Auth Login & Setup Routes ---
   app.get('/auth/login', (_req, res) => {
     res.sendFile(path.join(process.cwd(), 'src', 'api', 'login.html'));
-  });
-
-  app.post('/auth/login/complete', express.json(), (req, res) => {
-    const { provider, email, session_id, redirect_uri, state } = req.body;
-    if (!session_id || !redirect_uri) {
-      res.status(400).json({ error: 'Missing session_id or redirect_uri' });
-      return;
-    }
-    const pending = oauthProvider.getPendingAuth(session_id);
-    if (!pending) {
-      res.status(400).json({ error: 'Invalid or expired session' });
-      return;
-    }
-    const setupUrl = new URL('/auth/setup', externalUrl);
-    setupUrl.searchParams.set('session_id', session_id);
-    res.json({ redirect: setupUrl.toString() });
   });
 
   app.get('/auth/setup', (_req, res) => {
@@ -194,9 +183,6 @@ async function main() {
     if (!session_id) {
       res.status(400).json({ error: 'Missing session_id' });
       return;
-    }
-    if (!skip && passkey) {
-      userStore.set(session_id, { passkey, secret, address, daily_limit, per_tx_limit });
     }
     const result = oauthProvider.completePendingAuth(session_id, 'email');
     if (!result) {
