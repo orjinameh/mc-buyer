@@ -32,13 +32,41 @@ class InMemoryClientsStore implements OAuthRegisteredClientsStore {
   }
 }
 
+export interface PendingAuth {
+  client: OAuthClientInformationFull;
+  params: AuthorizationParams;
+}
+
 export class SimpleOAuthProvider implements OAuthServerProvider {
   private clientsStoreInstance = new InMemoryClientsStore();
   private codes = new Map<string, StoredAuthCode>();
   private tokens = new Map<string, StoredToken>();
+  private pendingAuths = new Map<string, PendingAuth>();
 
   get clientsStore(): OAuthRegisteredClientsStore {
     return this.clientsStoreInstance;
+  }
+
+  createPendingAuth(params: AuthorizationParams, client: OAuthClientInformationFull): string {
+    const sessionId = randomUUID();
+    this.pendingAuths.set(sessionId, { client, params });
+    return sessionId;
+  }
+
+  completePendingAuth(sessionId: string, _provider: string, _email?: string): { redirect: string } | null {
+    const pending = this.pendingAuths.get(sessionId);
+    if (!pending) return null;
+    this.pendingAuths.delete(sessionId);
+
+    const code = randomUUID();
+    this.codes.set(code, pending);
+
+    const targetUrl = new URL(pending.params.redirectUri);
+    targetUrl.searchParams.set('code', code);
+    if (pending.params.state) {
+      targetUrl.searchParams.set('state', pending.params.state);
+    }
+    return { redirect: targetUrl.toString() };
   }
 
   async authorize(
@@ -50,16 +78,12 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
       throw new InvalidRequestError('Unregistered redirect_uri');
     }
 
-    const code = randomUUID();
-    this.codes.set(code, { client, params });
+    const loginUrl = new URL('/auth/login', new URL(params.redirectUri).origin);
+    loginUrl.searchParams.set('session_id', this.createPendingAuth(params, client));
+    loginUrl.searchParams.set('redirect_uri', params.redirectUri);
+    if (params.state) loginUrl.searchParams.set('state', params.state);
 
-    const targetUrl = new URL(params.redirectUri);
-    targetUrl.searchParams.set('code', code);
-    if (params.state) {
-      targetUrl.searchParams.set('state', params.state);
-    }
-
-    res.redirect(targetUrl.toString());
+    res.redirect(loginUrl.toString());
   }
 
   async challengeForAuthorizationCode(

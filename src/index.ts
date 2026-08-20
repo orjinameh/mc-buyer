@@ -163,6 +163,25 @@ async function main() {
     await transport.handleRequest(req, res);
   });
 
+  // --- Auth Login Routes ---
+  app.get('/auth/login', (_req, res) => {
+    res.sendFile(path.join(process.cwd(), 'src', 'api', 'login.html'));
+  });
+
+  app.post('/auth/login/complete', express.json(), (req, res) => {
+    const { provider, email, session_id, redirect_uri, state } = req.body;
+    if (!session_id || !redirect_uri) {
+      res.status(400).json({ error: 'Missing session_id or redirect_uri' });
+      return;
+    }
+    const result = oauthProvider.completePendingAuth(session_id, provider || 'email', email);
+    if (!result) {
+      res.status(400).json({ error: 'Invalid or expired session' });
+      return;
+    }
+    res.json({ redirect: result.redirect });
+  });
+
   // --- Routes ---
   app.get('/health', (_req, res) => {
     res.json({
