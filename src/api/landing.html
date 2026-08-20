@@ -5,178 +5,130 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MC Buyer — Payment Vault for AI Agents</title>
   <style>
-    :root {
-      --bg:#000;--surface:#0a0a0a;--surface-2:#111;--surface-3:#161616;
-      --border:#1a1a1a;--border-focus:#2a2a2a;
-      --text:#fafafa;--text-secondary:#71717a;--text-muted:#3f3f46;
-      --green:#22c55e;--green-dim:#14532d;--green-glow:rgba(34,197,94,.15);
-      --red:#ef4444;--red-dim:#450a0a;
-      --yellow:#eab308;--radius:10px;--radius-lg:14px;
-    }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5;}
-    .screen{display:none;min-height:100vh;}
-    .screen.active{display:flex;flex-direction:column;}
-    .center{max-width:440px;width:100%;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;justify-content:center;min-height:100vh;}
-    .logo{width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#000;margin-bottom:24px;}
-    h1{font-size:22px;font-weight:600;color:var(--text);margin-bottom:6px;}
-    .subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:32px;}
-    .btn{padding:10px 20px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
-    .btn-green{background:var(--green);color:#000;}.btn-green:hover{background:#16a34a;}
-    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-secondary);}.btn-ghost:hover{border-color:var(--text-secondary);color:var(--text);}
-    .btn-red{background:var(--red-dim);color:var(--red);border:1px solid #7f1d1d;}.btn-red:hover{background:#7f1d1d;}
-    .btn-deny{background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);}.btn-deny:hover{border-color:var(--text-muted);color:var(--text);}
-    .btn-approve{background:var(--green);color:#000;}.btn-approve:hover{background:#16a34a;}
-    .btn-connect{width:100%;padding:14px;background:var(--green);color:#000;font-size:15px;font-weight:600;border-radius:var(--radius);border:none;cursor:pointer;margin-top:32px;transition:all .15s;}
-    .btn-connect:hover{background:#16a34a;}.btn-connect:disabled{background:var(--surface-2);color:var(--text-muted);cursor:not-allowed;}
-    .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;}
-    .badge-green{background:var(--green-dim);color:var(--green);}
-    .badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
-    .input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'SF Mono','Fira Code',monospace;outline:none;}
-    .input:focus{border-color:var(--border-focus);}
-
-    /* Steps */
-    .steps{display:flex;flex-direction:column;gap:20px;}
-    .step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
-    .step-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-    .step-num{width:28px;height:28px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--text-secondary);flex-shrink:0;}
-    .step.done .step-num{background:var(--green-dim);border-color:var(--green);color:var(--green);}
-    .step-title{font-size:14px;font-weight:600;color:var(--text);}
-    .step-desc{font-size:13px;color:var(--text-secondary);line-height:1.5;}
-    .copy-row{display:flex;gap:8px;margin-top:12px;}
-    .check{color:var(--green);margin-right:4px;}
-    .step-link{display:inline-block;margin-top:10px;color:var(--green);font-size:13px;text-decoration:none;cursor:pointer;}
-    .step-link:hover{text-decoration:underline;}
-
-    /* Popup */
-    .popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;}
-    .popup-overlay.open{display:flex;}
-    .popup{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:420px;max-width:95vw;overflow:hidden;}
-    .popup-head{padding:20px 24px;border-bottom:1px solid var(--border);text-align:center;}
-    .popup-head .logo{margin:0 auto 12px;}
-    .popup-head h2{font-size:16px;font-weight:600;margin-bottom:4px;}
-    .popup-head p{font-size:13px;color:var(--text-secondary);}
-    .popup-body{padding:20px 24px;}
-    .perm-section{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
-    .perm-label{font-size:13px;font-weight:500;margin-bottom:10px;color:var(--text);}
-    .perm-item{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;color:var(--text-secondary);}
-    .perm-item svg{width:16px;height:16px;color:var(--green);flex-shrink:0;}
-    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;}
-    .toggle-label{font-size:13px;font-weight:500;}
-    .toggle-desc{font-size:12px;color:var(--text-muted);margin-top:2px;}
-    .toggle{width:40px;height:22px;background:var(--surface);border:1px solid var(--border);border-radius:11px;cursor:pointer;position:relative;transition:all .2s;flex-shrink:0;}
-    .toggle.on{background:var(--green-dim);border-color:var(--green);}
-    .toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--text-secondary);border-radius:50%;transition:all .2s;}
-    .toggle.on::after{left:20px;background:var(--green);}
-    .cap-prefix{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 14px;}
-    .cap-prefix span{font-size:20px;font-weight:600;color:var(--text-muted);}
-    .cap-prefix input{flex:1;background:transparent;border:none;font-size:20px;font-weight:600;color:var(--text);outline:none;font-family:monospace;width:100%;}
-    .popup-actions{display:flex;gap:10px;padding:16px 24px;border-top:1px solid var(--border);}
-    .popup-actions .btn{flex:1;padding:12px;font-size:14px;}
+    :root{--bg:#000;--surface:#0a0a0a;--surface-2:#111;--border:#1a1a1a;--border-focus:#2a2a2a;--text:#fafafa;--text-secondary:#71717a;--text-muted:#3f3f46;--green:#22c55e;--green-dim:#14532d;--green-glow:rgba(34,197,94,.15);--red:#ef4444;--red-dim:#450a0a;--yellow:#eab308;--radius:10px;--radius-lg:14px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+    .screen{display:none;min-height:100vh}.screen.active{display:flex;flex-direction:column}
+    .center{max-width:440px;width:100%;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;justify-content:center;min-height:100vh}
+    .logo{width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#000;margin-bottom:24px}
+    h1{font-size:22px;font-weight:600;color:var(--text);margin-bottom:6px}
+    .subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:32px}
+    .btn{padding:10px 20px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-green{background:var(--green);color:#000}.btn-green:hover{background:#16a34a}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}.btn-ghost:hover{border-color:var(--text-secondary);color:var(--text)}
+    .btn-red{background:var(--red-dim);color:var(--red);border:1px solid #7f1d1d}.btn-red:hover{background:#7f1d1d}
+    .btn-deny{background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}.btn-deny:hover{border-color:var(--text-muted);color:var(--text)}
+    .btn-approve{background:var(--green);color:#000}.btn-approve:hover{background:#16a34a}
+    .btn-lg{width:100%;padding:14px;font-size:15px;font-weight:600;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:none;margin-top:24px}
+    .btn-lg.green{background:var(--green);color:#000}.btn-lg.green:hover{background:#16a34a}
+    .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500}
+    .badge-green{background:var(--green-dim);color:var(--green)}
+    .badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+    .form-group{margin-bottom:20px}
+    .form-label{display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px}
+    .form-hint{font-size:12px;color:var(--text-muted);margin-top:4px}
+    .form-input{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);outline:none;transition:border-color .15s}
+    .form-input:focus{border-color:var(--green)}
+    .form-input.mono{font-family:'SF Mono','Fira Code',monospace;font-size:13px}
+    .steps{display:flex;flex-direction:column;gap:20px}
+    .step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:all .2s}
+    .step.locked{opacity:.4;pointer-events:none}
+    .step.current{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+    .step.done{border-color:var(--green);background:var(--green-dim)}
+    .step-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+    .step-num{width:28px;height:28px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--text-secondary);flex-shrink:0}
+    .step.current .step-num{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+    .step.done .step-num{background:var(--green);border-color:var(--green);color:#000}
+    .step-title{font-size:14px;font-weight:600;color:var(--text)}
+    .step-desc{font-size:13px;color:var(--text-secondary);line-height:1.5}
+    .check{font-size:14px}
 
     /* Dashboard */
-    .dash{padding:0;}
-    .dash-header{border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
-    .dash-logo{display:flex;align-items:center;gap:10px;}
-    .dash-logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#000;}
-    .dash-logo-text{font-size:15px;font-weight:600;}
-    .dash-nav{display:flex;gap:4px;}
-    .dash-nav a{padding:8px 14px;font-size:13px;color:var(--text-secondary);text-decoration:none;border-radius:8px;transition:all .1s;cursor:pointer;}
-    .dash-nav a:hover{color:var(--text);background:var(--surface);}
-    .dash-nav a.active{color:var(--text);background:var(--surface);}
-    .dash-body{max-width:960px;margin:0 auto;padding:32px 24px;width:100%;}
-    .dash-title{font-size:20px;font-weight:600;margin-bottom:4px;}
-    .dash-subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:28px;}
-    .stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:32px;}
-    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
-    .stat-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
-    .stat-value{font-size:24px;font-weight:700;color:var(--text);}
-    .stat-sub{font-size:13px;color:var(--text-secondary);margin-top:2px;}
-    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-    .table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
-    .table-title{font-size:14px;font-weight:600;}
-    table{width:100%;border-collapse:collapse;}
-    th{text-align:left;padding:12px 20px;font-size:12px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
-    td{padding:14px 20px;font-size:14px;border-bottom:1px solid var(--border);}
-    tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}tr.clickable{cursor:pointer;}
-    .agent-name{font-weight:500;color:var(--text);}
-    .agent-id{font-size:12px;color:var(--text-muted);font-family:monospace;}
-    .perm-list{display:flex;gap:4px;flex-wrap:wrap;}
-    .perm-tag{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);}
-    .limit-cell{font-family:monospace;font-size:13px;color:var(--text-secondary);}
-    .status-active{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:500;}
-    .status-active::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green-glow);}
-    .status-revoked{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--red);font-weight:500;}
-    .status-revoked::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--red);}
-
-    /* Form */
-    .form-group{margin-bottom:20px;}
-    .form-label{display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;}
-    .form-hint{font-size:12px;color:var(--text-muted);margin-top:4px;}
-    .form-input{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);outline:none;transition:border-color .15s;}
-    .form-input:focus{border-color:var(--green);}
-    .checkbox-group{display:flex;flex-direction:column;gap:8px;}
-    .checkbox-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;}
-    .checkbox-item:hover{border-color:var(--border-focus);}
-    .checkbox-item.checked{border-color:var(--green);background:var(--green-dim);}
-    .checkbox-item input[type="checkbox"],.checkbox-item input[type="radio"]{width:16px;height:16px;accent-color:var(--green);}
-    .checkbox-item label{font-size:14px;color:var(--text);cursor:pointer;}
-    .checkbox-item .desc{font-size:12px;color:var(--text-muted);margin-top:2px;}
-
-    /* Agent detail */
-    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);}
-    .detail-row:last-child{border-bottom:none;}
-    .detail-label{font-size:13px;color:var(--text-secondary);}
-    .detail-value{font-size:14px;font-weight:500;color:var(--text);text-align:right;max-width:60%;word-break:break-all;}
-    .detail-value.mono{font-family:'SF Mono','Fira Code',monospace;font-size:12px;}
-    .detail-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;}
-    .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:20px;background:none;border:none;padding:0;}
-    .back-btn:hover{color:var(--text);}
-
-    /* Key display */
-    .key-display{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;color:var(--text);word-break:break-all;margin-bottom:12px;}
-    .key-warning{font-size:12px;color:var(--yellow);margin-bottom:16px;}
-
-    /* Kill switch */
-    .kill-switch{background:var(--surface);border:1px solid #7f1d1d;border-radius:var(--radius);padding:20px;margin-top:32px;}
-    .kill-switch h3{font-size:14px;font-weight:600;color:var(--red);margin-bottom:4px;}
-    .kill-switch p{font-size:13px;color:var(--text-secondary);margin-bottom:16px;}
-
-    /* Wallet */
-    .wallet-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;}
-    .wallet-address{font-family:'SF Mono','Fira Code',monospace;font-size:13px;color:var(--text-secondary);word-break:break-all;}
-    .wallet-balance{font-size:28px;font-weight:700;color:var(--text);margin:8px 0 4px;}
-    .wallet-fiat{font-size:14px;color:var(--text-secondary);}
-
-    /* Activity */
-    .activity-item{display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);}
-    .activity-item:last-child{border-bottom:none;}
-    .activity-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--surface-2);border:1px solid var(--border);}
-    .activity-icon.approved{background:var(--green-dim);border-color:var(--green);color:var(--green);}
-    .activity-icon.denied{background:var(--red-dim);border-color:var(--red);color:var(--red);}
-    .activity-icon.created{background:var(--surface-2);border-color:var(--border);}
-    .activity-icon.revoked{background:var(--red-dim);border-color:var(--red);color:var(--red);}
-    .activity-content{flex:1;}
-    .activity-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px;}
-    .activity-desc{font-size:12px;color:var(--text-secondary);}
-    .activity-time{font-size:11px;color:var(--text-muted);white-space:nowrap;}
-
-    .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
-    .empty-state p{font-size:14px;margin-bottom:16px;}
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--text);z-index:300;transition:transform .3s ease;}
-    .toast.show{transform:translateX(-50%) translateY(0);}
-
-    /* Passkey modal */
-    .passkey-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;}
-    .passkey-overlay.open{display:flex;}
-    .passkey-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:360px;max-width:95vw;padding:32px;text-align:center;}
-    .passkey-icon{width:48px;height:48px;background:var(--surface-2);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:20px;}
-    .passkey-card h3{font-size:16px;font-weight:600;margin-bottom:8px;}
-    .passkey-card p{font-size:13px;color:var(--text-secondary);margin-bottom:24px;}
-    .passkey-input{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:14px;color:var(--text);text-align:center;outline:none;font-family:monospace;margin-bottom:16px;}
-    .passkey-input:focus{border-color:var(--green);}
-    .passkey-actions{display:flex;gap:10px;}
-    .passkey-actions .btn{flex:1;}
+    .dash{padding:0}
+    .dash-header{border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+    .dash-logo{display:flex;align-items:center;gap:10px}
+    .dash-logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#000}
+    .dash-logo-text{font-size:15px;font-weight:600}
+    .dash-nav{display:flex;gap:4px}
+    .dash-nav a{padding:8px 14px;font-size:13px;color:var(--text-secondary);text-decoration:none;border-radius:8px;transition:all .1s;cursor:pointer}
+    .dash-nav a:hover{color:var(--text);background:var(--surface)}
+    .dash-nav a.active{color:var(--text);background:var(--surface)}
+    .dash-body{max-width:960px;margin:0 auto;padding:32px 24px;width:100%}
+    .dash-title{font-size:20px;font-weight:600;margin-bottom:4px}
+    .dash-subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:28px}
+    .stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:32px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+    .stat-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .stat-value{font-size:24px;font-weight:700;color:var(--text)}
+    .stat-sub{font-size:13px;color:var(--text-secondary);margin-top:2px}
+    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+    .table-title{font-size:14px;font-weight:600}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;padding:12px 20px;font-size:12px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+    td{padding:14px 20px;font-size:14px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border-bottom:none}tr:hover td{background:rgba(255,255,255,.02)}tr.clickable{cursor:pointer}
+    .agent-name{font-weight:500;color:var(--text)}
+    .agent-id{font-size:12px;color:var(--text-muted);font-family:monospace}
+    .perm-list{display:flex;gap:4px;flex-wrap:wrap}
+    .perm-tag{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}
+    .limit-cell{font-family:monospace;font-size:13px;color:var(--text-secondary)}
+    .status-active{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:500}
+    .status-active::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green-glow)}
+    .status-revoked{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--red);font-weight:500}
+    .status-revoked::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--red)}
+    .checkbox-group{display:flex;flex-direction:column;gap:8px}
+    .checkbox-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s}
+    .checkbox-item:hover{border-color:var(--border-focus)}
+    .checkbox-item.checked{border-color:var(--green);background:var(--green-dim)}
+    .checkbox-item input[type="checkbox"],.checkbox-item input[type="radio"]{width:16px;height:16px;accent-color:var(--green)}
+    .checkbox-item label{font-size:14px;color:var(--text);cursor:pointer}
+    .checkbox-item .desc{font-size:12px;color:var(--text-muted);margin-top:2px}
+    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+    .detail-row:last-child{border-bottom:none}
+    .detail-label{font-size:13px;color:var(--text-secondary)}
+    .detail-value{font-size:14px;font-weight:500;color:var(--text);text-align:right;max-width:60%;word-break:break-all}
+    .detail-value.mono{font-family:'SF Mono','Fira Code',monospace;font-size:12px}
+    .detail-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer;margin-bottom:20px;background:none;border:none;padding:0}
+    .back-btn:hover{color:var(--text)}
+    .key-display{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;color:var(--text);word-break:break-all;margin-bottom:12px}
+    .key-warning{font-size:12px;color:var(--yellow);margin-bottom:16px}
+    .kill-switch{background:var(--surface);border:1px solid #7f1d1d;border-radius:var(--radius);padding:20px;margin-top:32px}
+    .kill-switch h3{font-size:14px;font-weight:600;color:var(--red);margin-bottom:4px}
+    .kill-switch p{font-size:13px;color:var(--text-secondary);margin-bottom:16px}
+    .wallet-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+    .wallet-address{font-family:'SF Mono','Fira Code',monospace;font-size:13px;color:var(--text-secondary);word-break:break-all}
+    .wallet-balance{font-size:28px;font-weight:700;color:var(--text);margin:8px 0 4px}
+    .wallet-fiat{font-size:14px;color:var(--text-secondary)}
+    .activity-item{display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border)}
+    .activity-item:last-child{border-bottom:none}
+    .activity-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--surface-2);border:1px solid var(--border)}
+    .activity-icon.approved{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+    .activity-icon.denied{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+    .activity-icon.created{background:var(--surface-2);border-color:var(--border)}
+    .activity-icon.revoked{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+    .activity-content{flex:1}
+    .activity-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px}
+    .activity-desc{font-size:12px;color:var(--text-secondary)}
+    .activity-time{font-size:11px;color:var(--text-muted);white-space:nowrap}
+    .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+    .empty-state p{font-size:14px;margin-bottom:16px}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--text);z-index:300;transition:transform .3s ease}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .mcp-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+    .mcp-box h3{font-size:14px;font-weight:600;margin-bottom:12px}
+    .copy-row{display:flex;gap:8px;margin-top:8px}
+    .copy-input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'SF Mono','Fira Code',monospace;outline:none}
+    .pending-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px}
+    .pending-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .pending-body{padding:16px 20px}
+    .pending-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
+    .pending-label{font-size:13px;color:var(--text-secondary)}
+    .pending-value{font-size:14px;font-weight:500;color:var(--text)}
+    .pending-value.amount{color:var(--green);font-size:18px;font-weight:700}
+    .pending-actions{display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--border)}
+    .pending-actions .btn{flex:1;padding:10px;font-size:13px}
   </style>
 </head>
 <body>
@@ -185,98 +137,62 @@
   <div id="onboarding" class="screen active">
     <div class="center">
       <div class="logo">M</div>
-      <h1>Connect to MC Buyer</h1>
-      <p class="subtitle">Set up your agent spending account in three steps.</p>
+      <h1>Set up MC Buyer</h1>
+      <p class="subtitle">Create your account to start letting AI agents spend on your behalf.</p>
 
       <div class="steps">
-        <div class="step" id="step1">
+        <div class="step current" id="step-passkey">
           <div class="step-header">
-            <div class="step-num">1</div>
-            <div class="step-title">Add MCP Server URL</div>
+            <div class="step-num" id="step-passkey-num">1</div>
+            <div class="step-title">Set a passkey</div>
           </div>
-          <div class="step-desc">Copy this URL into your agent's MCP connector settings.</div>
-          <div class="copy-row">
-            <input class="input" id="server-url" readonly>
-            <button class="btn btn-ghost" onclick="copyUrl()">Copy</button>
+          <div class="step-desc">Used to approve agent operations. Choose something you'll remember.</div>
+          <div id="step-passkey-body" style="margin-top:12px">
+            <div class="form-group" style="margin-bottom:12px">
+              <input type="password" class="form-input" id="ob-passkey" placeholder="Enter a passkey">
+            </div>
+            <button class="btn btn-green" onclick="setPasskey()">Set Passkey</button>
           </div>
         </div>
 
-        <div class="step" id="step2">
+        <div class="step locked" id="step-wallet">
           <div class="step-header">
-            <div class="step-num" id="step2-num">2</div>
-            <div class="step-title">Enable Developer Mode</div>
+            <div class="step-num" id="step-wallet-num">2</div>
+            <div class="step-title">Connect Stellar wallet</div>
           </div>
-          <div class="step-desc">Turn on Developer Mode in your agent settings to allow external tool connections.</div>
-          <div style="margin-top:10px;">
-            <span class="badge badge-muted" id="dev-mode-badge">Waiting</span>
+          <div class="step-desc">Your key stays in this browser. Never shared with agents or servers.</div>
+          <div id="step-wallet-body" style="margin-top:12px;display:none">
+            <div class="form-group" style="margin-bottom:12px">
+              <input type="password" class="form-input mono" id="ob-secret" placeholder="S...">
+            </div>
+            <button class="btn btn-green" onclick="connectWallet()">Connect Wallet</button>
           </div>
         </div>
 
-        <div class="step" id="step3">
+        <div class="step locked" id="step-limits">
           <div class="step-header">
-            <div class="step-num" id="step3-num">3</div>
-            <div class="step-title">Authorize Agent</div>
+            <div class="step-num" id="step-limits-num">3</div>
+            <div class="step-title">Set spending limits</div>
           </div>
-          <div class="step-desc">Grant your agent permission to spend from your Stellar balance.</div>
+          <div class="step-desc">Global limits for all agents combined.</div>
+          <div id="step-limits-body" style="margin-top:12px;display:none">
+            <div style="display:flex;gap:12px;margin-bottom:12px">
+              <div class="form-group" style="margin:0;flex:1">
+                <label class="form-label">Daily (USDC)</label>
+                <input type="number" class="form-input" id="ob-daily" value="100" min="1">
+              </div>
+              <div class="form-group" style="margin:0;flex:1">
+                <label class="form-label">Per transaction (USDC)</label>
+                <input type="number" class="form-input" id="ob-pertx" value="25" min="1">
+              </div>
+            </div>
+            <button class="btn btn-green" onclick="setLimits()">Continue</button>
+          </div>
         </div>
       </div>
 
-      <button class="btn-connect" id="connect-btn" onclick="openPopup()">Connect Agent</button>
-
-      <div style="text-align:center;margin-top:16px;">
+      <div style="text-align:center;margin-top:24px">
         <span class="badge badge-green"><span class="dot"></span>MC Buyer v1.2.0</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- OAUTH POPUP -->
-  <div class="popup-overlay" id="popup">
-    <div class="popup">
-      <div class="popup-head">
-        <div class="logo">M</div>
-        <h2>MC Buyer wants to access your agent</h2>
-        <p>Authorize spending permissions for this agent.</p>
-      </div>
-      <div class="popup-body">
-        <div class="perm-section">
-          <div class="perm-label">Requested permissions</div>
-          <div class="perm-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            Read spending balance
-          </div>
-          <div class="perm-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            Create payment quotes
-          </div>
-          <div class="perm-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            Execute purchases (airtime, data, electricity, cable)
-          </div>
-          <div class="perm-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            View transaction history
-          </div>
-        </div>
-
-        <div class="toggle-row" onclick="toggleAuto()">
-          <div>
-            <div class="toggle-label">Autonomous Mode</div>
-            <div class="toggle-desc">Allow agent to execute purchases without manual approval</div>
-          </div>
-          <div class="toggle" id="auto-toggle"></div>
-        </div>
-
-        <div style="margin-bottom:4px;">
-          <div class="perm-label">Spending cap</div>
-        </div>
-        <div class="cap-prefix">
-          <span>$</span>
-          <input type="number" id="spend-cap" value="50" min="1" max="10000" step="1">
-        </div>
-      </div>
-      <div class="popup-actions">
-        <button class="btn btn-deny" onclick="closePopup()">Deny</button>
-        <button class="btn btn-approve" onclick="approve()">Approve</button>
       </div>
     </div>
   </div>
@@ -290,114 +206,173 @@
       </div>
       <div class="dash-nav">
         <a class="active" onclick="showDashTab('agents')">Agents</a>
+        <a onclick="showDashTab('pending')">Pending</a>
         <a onclick="showDashTab('activity')">Activity</a>
         <a onclick="showDashTab('settings')">Settings</a>
       </div>
       <div><span class="badge badge-green"><span class="dot"></span>Connected</span></div>
     </div>
 
+    <!-- Agents Tab -->
     <div id="tab-agents" class="dash-body">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
         <div>
           <div class="dash-title">Agent Clients</div>
           <div class="dash-subtitle" style="margin-bottom:0">Manage which agents can access your credentials.</div>
         </div>
-        <button class="btn btn-green" onclick="resetOnboarding()">+ New Agent Client</button>
+        <button class="btn btn-green" onclick="showScreen('create-agent')">+ New Agent</button>
       </div>
       <div class="stat-row">
-        <div class="stat-card">
-          <div class="stat-label">Total Balance</div>
-          <div class="stat-value" id="dash-balance">&mdash;</div>
-          <div class="stat-sub" id="dash-balance-fiat">USDC</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Today's Spend</div>
-          <div class="stat-value" id="dash-daily">$0.00</div>
-          <div class="stat-sub">of daily limit</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Active Agents</div>
-          <div class="stat-value" id="dash-agents">0</div>
-          <div class="stat-sub">with spending access</div>
-        </div>
+        <div class="stat-card"><div class="stat-label">Balance</div><div class="stat-value" id="dash-balance">—</div><div class="stat-sub">USDC</div></div>
+        <div class="stat-card"><div class="stat-label">Today's Spend</div><div class="stat-value" id="dash-daily">$0.00</div><div class="stat-sub">of daily limit</div></div>
+        <div class="stat-card"><div class="stat-label">Active Agents</div><div class="stat-value" id="dash-agents">0</div><div class="stat-sub">with access</div></div>
       </div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Connected Agents</span></div>
         <table>
           <thead><tr><th>Agent</th><th>Operations</th><th>Limits</th><th>Mode</th><th>Status</th></tr></thead>
-          <tbody id="agents-table">
-            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents connected</td></tr>
-          </tbody>
+          <tbody id="agents-table"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet. Create one to get started.</td></tr></tbody>
         </table>
       </div>
       <div class="kill-switch">
         <h3>Kill Switch</h3>
-        <p>Immediately revoke access for all agent clients. This cannot be undone.</p>
+        <p>Immediately revoke access for all agent clients.</p>
         <button class="btn btn-red" onclick="killSwitch()">Revoke All Agents</button>
       </div>
     </div>
 
+    <!-- Pending Tab -->
+    <div id="tab-pending" class="dash-body" style="display:none">
+      <div class="dash-title">Pending Approvals</div>
+      <div class="dash-subtitle">Operations waiting for your approval.</div>
+      <div id="pending-list"><div class="empty-state"><p>No pending operations</p></div></div>
+    </div>
+
+    <!-- Activity Tab -->
     <div id="tab-activity" class="dash-body" style="display:none">
       <div class="dash-title">Audit Log</div>
       <div class="dash-subtitle">Every request, approval, and denial is recorded.</div>
       <div class="table-card"><div id="activity-log"><div class="empty-state"><p>No activity yet</p></div></div></div>
     </div>
 
+    <!-- Settings Tab -->
     <div id="tab-settings" class="dash-body" style="display:none">
       <div class="dash-title">Settings</div>
-      <div class="dash-subtitle">Manage your account and security.</div>
+      <div class="dash-subtitle">Manage your account and MCP connection.</div>
+
+      <div class="mcp-box">
+        <h3>MCP Connection</h3>
+        <div class="step-desc" style="margin-bottom:12px">Add this URL to your AI agent's MCP connector settings.</div>
+        <div class="copy-row">
+          <input class="copy-input" id="mcp-url" readonly>
+          <button class="btn btn-ghost" onclick="copyMcpUrl()">Copy</button>
+        </div>
+        <div class="step-desc" style="margin-top:8px">When creating an agent client, you'll get a client key. Use both in your agent's MCP config.</div>
+      </div>
+
       <div class="wallet-card">
         <div class="stat-label">Wallet</div>
-        <div class="wallet-address" id="settings-address">&mdash;</div>
-        <div class="wallet-balance" id="settings-balance">&mdash;</div>
+        <div class="wallet-address" id="settings-address">—</div>
+        <div class="wallet-balance" id="settings-balance">—</div>
         <div class="wallet-fiat">USDC</div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Passkey</label>
-        <input type="password" class="form-input" id="settings-passkey" placeholder="Set a passkey for approvals">
-        <p class="form-hint">Used to approve agent operations.</p>
-      </div>
-      <button class="btn btn-green" onclick="savePasskey()">Save Passkey</button>
-      <div class="kill-switch" style="margin-top:32px;">
+
+      <div class="kill-switch" style="margin-top:20px">
         <h3>Danger Zone</h3>
-        <p>Disconnect wallet and clear all data from this browser.</p>
-        <button class="btn btn-red" onclick="disconnectWallet()">Disconnect Wallet</button>
+        <p>Clear all data from this browser.</p>
+        <button class="btn btn-red" onclick="resetAccount()">Reset Account</button>
       </div>
+    </div>
+  </div>
+
+  <!-- CREATE AGENT CLIENT -->
+  <div id="create-agent" class="screen">
+    <div class="center" style="max-width:520px">
+      <button class="back-btn" onclick="showScreen('dashboard')">&larr; Back</button>
+      <h1>Create agent client</h1>
+      <p class="subtitle">Define what this agent can access and how much it can spend.</p>
+      <div class="form-group">
+        <label class="form-label">Agent name</label>
+        <input type="text" class="form-input" id="agent-name" placeholder="e.g. Travel Booker">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Allowed operations</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item checked" onclick="toggleCheck(this)"><input type="checkbox" id="op-pay" checked><div><label for="op-pay">Make payments</label><div class="desc">Send USDC to merchants</div></div></div>
+          <div class="checkbox-item" onclick="toggleCheck(this)"><input type="checkbox" id="op-swap"><div><label for="op-swap">Swap tokens</label><div class="desc">Exchange between assets</div></div></div>
+          <div class="checkbox-item" onclick="toggleCheck(this)"><input type="checkbox" id="op-sign"><div><label for="op-sign">Sign transactions</label><div class="desc">Broadcast on-chain</div></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1"><label class="form-label">Daily limit (USDC)</label><input type="number" class="form-input" id="agent-daily" value="50" min="1"></div>
+        <div class="form-group" style="flex:1"><label class="form-label">Per-tx limit (USDC)</label><input type="number" class="form-input" id="agent-per-tx" value="10" min="1"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Approval mode</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item checked" onclick="selectMode(this)"><input type="radio" name="mode" id="mode-always" checked><div><label for="mode-always">Always ask</label><div class="desc">Every operation requires your passkey</div></div></div>
+          <div class="checkbox-item" onclick="selectMode(this)"><input type="radio" name="mode" id="mode-auto"><div><label for="mode-auto">Autonomous within policy</label><div class="desc">Agent acts without approval, inside your limits</div></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-ghost" onclick="showScreen('dashboard')" style="flex:1;padding:12px">Cancel</button>
+        <button class="btn btn-green" onclick="createAgent()" style="flex:1;padding:12px">Create Agent Client</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENT CREATED -->
+  <div id="agent-created" class="screen">
+    <div class="center" style="max-width:520px">
+      <div class="logo" style="background:var(--green-dim);color:var(--green)">&#10003;</div>
+      <h1>Agent client created</h1>
+      <p class="subtitle">Save this client key. It will not be shown again.</p>
+      <div class="key-warning">Treat this key like a password. Anyone with it can make requests as this agent.</div>
+      <div class="key-display" id="created-key"></div>
+      <div class="form-group">
+        <label class="form-label">MCP connector URL</label>
+        <div class="copy-row">
+          <input type="text" class="form-input mono" id="created-mcp" readonly style="font-size:12px">
+          <button class="btn btn-ghost" onclick="copyCreatedMcp()">Copy</button>
+        </div>
+        <p class="form-hint">Add this URL + client key to your agent's MCP config.</p>
+      </div>
+      <button class="btn-lg green" onclick="showScreen('dashboard')">Go to Dashboard</button>
     </div>
   </div>
 
   <!-- AGENT DETAIL -->
   <div id="agent-detail" class="screen">
-    <div class="center" style="max-width:520px;">
-      <button class="back-btn" onclick="showScreen('dashboard')">&larr; Back to dashboard</button>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-        <h1 id="detail-name" style="margin:0;">&mdash;</h1>
+    <div class="center" style="max-width:520px">
+      <button class="back-btn" onclick="showScreen('dashboard')">&larr; Back</button>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <h1 id="detail-name" style="margin:0">—</h1>
         <span class="badge badge-green" id="detail-status"><span class="dot"></span>Active</span>
       </div>
       <div class="detail-card">
-        <div class="detail-row"><span class="detail-label">Agent ID</span><span class="detail-value mono" id="detail-id">&mdash;</span></div>
-        <div class="detail-row"><span class="detail-label">Client Key</span><span class="detail-value mono" id="detail-key">&mdash;</span></div>
-        <div class="detail-row"><span class="detail-label">MCP URL</span><span class="detail-value mono" id="detail-mcp">&mdash;</span></div>
-        <div class="detail-row"><span class="detail-label">Approval Mode</span><span class="detail-value" id="detail-mode">&mdash;</span></div>
-        <div class="detail-row"><span class="detail-label">Daily Limit</span><span class="detail-value" id="detail-daily">&mdash;</span></div>
-        <div class="detail-row"><span class="detail-label">Per-Transaction Limit</span><span class="detail-value" id="detail-pertx">&mdash;</span></div>
-        <div class="detail-row"><span class="detail-label">Operations</span><span class="detail-value" id="detail-ops">&mdash;</span></div>
-        <div class="detail-row"><span class="detail-label">Created</span><span class="detail-value" id="detail-created">&mdash;</span></div>
+        <div class="detail-row"><span class="detail-label">Agent ID</span><span class="detail-value mono" id="detail-id">—</span></div>
+        <div class="detail-row"><span class="detail-label">Client Key</span><span class="detail-value mono" id="detail-key">—</span></div>
+        <div class="detail-row"><span class="detail-label">MCP URL</span><span class="detail-value mono" id="detail-mcp">—</span></div>
+        <div class="detail-row"><span class="detail-label">Approval Mode</span><span class="detail-value" id="detail-mode">—</span></div>
+        <div class="detail-row"><span class="detail-label">Daily Limit</span><span class="detail-value" id="detail-daily">—</span></div>
+        <div class="detail-row"><span class="detail-label">Per-TX Limit</span><span class="detail-value" id="detail-pertx">—</span></div>
+        <div class="detail-row"><span class="detail-label">Operations</span><span class="detail-value" id="detail-ops">—</span></div>
+        <div class="detail-row"><span class="detail-label">Created</span><span class="detail-value" id="detail-created">—</span></div>
       </div>
-      <button class="btn btn-red" onclick="revokeAgent()" style="width:100%;padding:12px;">Revoke Access</button>
+      <button class="btn btn-red" onclick="revokeAgent()" style="width:100%;padding:12px">Revoke Access</button>
     </div>
   </div>
 
   <!-- PASSKEY MODAL -->
-  <div class="passkey-overlay" id="passkey-modal">
-    <div class="passkey-card">
-      <div class="passkey-icon">&#128274;</div>
-      <h3>Enter passkey</h3>
-      <p id="passkey-prompt">Confirm with your passkey to continue.</p>
-      <input type="password" class="passkey-input" id="passkey-input" placeholder="Your passkey">
-      <div class="passkey-actions">
-        <button class="btn btn-ghost" onclick="closePasskey()">Cancel</button>
-        <button class="btn btn-green" onclick="verifyPasskey()">Verify</button>
+  <div class="passkey-overlay" id="passkey-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:360px;max-width:95vw;padding:32px;text-align:center">
+      <div style="width:48px;height:48px;background:var(--surface-2);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:20px">&#128274;</div>
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:8px">Enter passkey</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:24px" id="passkey-prompt">Confirm with your passkey.</p>
+      <input type="password" class="form-input" id="passkey-input" placeholder="Your passkey" style="text-align:center;font-family:monospace;margin-bottom:16px">
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="closePasskey()" style="flex:1">Cancel</button>
+        <button class="btn btn-green" onclick="verifyPasskey()" style="flex:1">Verify</button>
       </div>
     </div>
   </div>
@@ -406,17 +381,24 @@
 
   <script>
     // --- State ---
-    function getAgents(){return JSON.parse(localStorage.getItem('mc-agents')||'[]');}
-    function setAgents(a){localStorage.setItem('mc-agents',JSON.stringify(a));}
-    function getAudit(){return JSON.parse(localStorage.getItem('mc-audit')||'[]');}
-    function setAudit(a){localStorage.setItem('mc-audit',JSON.stringify(a));}
+    function getAccount(){return JSON.parse(localStorage.getItem('mc-account')||'null')}
+    function setAccount(a){localStorage.setItem('mc-account',JSON.stringify(a))}
+    function getAgents(){return JSON.parse(localStorage.getItem('mc-agents')||'[]')}
+    function setAgents(a){localStorage.setItem('mc-agents',JSON.stringify(a))}
+    function getAudit(){return JSON.parse(localStorage.getItem('mc-audit')||'[]')}
+    function setAudit(a){localStorage.setItem('mc-audit',JSON.stringify(a))}
+    function getPending(){return JSON.parse(localStorage.getItem('mc-pending')||'[]')}
+    function setPending(p){localStorage.setItem('mc-pending',JSON.stringify(p))}
 
     // --- Init ---
-    document.getElementById('server-url').value=window.location.origin+'/mcp';
-    const params=new URLSearchParams(window.location.search);
-    if(params.get('approved')==='1')showDashboard();
-    else if(getAgents().length)showDashboard();
-    else showScreen('onboarding');
+    (function(){
+      const acct=getAccount();
+      if(acct&&acct.onboarded)showScreen('dashboard');
+      else if(acct&&acct.passkey)setStep('wallet');
+      else if(acct)setStep('passkey');
+      else{setAccount({passkey:null,secret:null,dailyLimit:100,perTxLimit:25,onboarded:false});showScreen('onboarding')}
+      document.getElementById('mcp-url').value=window.location.origin+'/mcp';
+    })();
 
     // --- Routing ---
     function showScreen(id){
@@ -424,230 +406,216 @@
       document.getElementById(id).classList.add('active');
       if(id==='dashboard')refreshDashboard();
     }
-    function showDashboard(){showScreen('dashboard');}
     function showDashTab(tab){
       document.querySelectorAll('.dash-body').forEach(b=>b.style.display='none');
       document.getElementById('tab-'+tab).style.display='block';
       document.querySelectorAll('.dash-nav a').forEach(a=>a.classList.remove('active'));
       event.target.classList.add('active');
+      if(tab==='pending')renderPending();
       if(tab==='activity')renderActivity();
       if(tab==='settings')renderSettings();
     }
 
-    // --- Onboarding ---
-    function copyUrl(){
-      navigator.clipboard.writeText(window.location.origin).then(()=>{
-        document.getElementById('step1').classList.add('done');
-        document.getElementById('step1').querySelector('.step-num').innerHTML='<span class="check">&#10003;</span>';
-        document.getElementById('dev-mode-badge').textContent='Ready';
-        document.getElementById('dev-mode-badge').className='badge badge-green';
-        document.getElementById('step2').classList.add('done');
-        document.getElementById('step2').querySelector('.step-num').innerHTML='<span class="check">&#10003;</span>';
-        showToast('Server URL copied');
+    // --- Onboarding Steps ---
+    function setStep(step){
+      const steps=['passkey','wallet','limits'];
+      const idx=steps.indexOf(step);
+      steps.forEach((s,i)=>{
+        const el=document.getElementById('step-'+s);
+        const num=document.getElementById('step-'+s+'-num');
+        const body=document.getElementById('step-'+s+'-body');
+        if(i<idx){el.className='step done';num.innerHTML='&#10003;';body.style.display='none'}
+        else if(i===idx){el.className='step current';num.textContent=i+1;body.style.display='block'}
+        else{el.className='step locked';num.textContent=i+1;body.style.display='none'}
       });
     }
-    function resetOnboarding(){
-      document.getElementById('step1').classList.remove('done');
-      document.getElementById('step1').querySelector('.step-num').textContent='1';
-      document.getElementById('step2').classList.remove('done');
-      document.getElementById('step2').querySelector('.step-num').textContent='2';
-      document.getElementById('step3').classList.remove('done');
-      document.getElementById('step3').querySelector('.step-num').textContent='3';
-      document.getElementById('dev-mode-badge').textContent='Waiting';
-      document.getElementById('dev-mode-badge').className='badge badge-muted';
-      showScreen('onboarding');
+
+    function setPasskey(){
+      const pk=document.getElementById('ob-passkey').value.trim();
+      if(!pk){showToast('Enter a passkey');return}
+      const acct=getAccount();
+      acct.passkey=btoa(pk);
+      setAccount(acct);
+      showToast('Passkey set');
+      setStep('wallet');
     }
 
-    // --- Popup ---
-    function toggleAuto(){document.getElementById('auto-toggle').classList.toggle('on');}
-    function openPopup(){document.getElementById('popup').classList.add('open');}
-    function closePopup(){document.getElementById('popup').classList.remove('open');}
+    function connectWallet(){
+      const key=document.getElementById('ob-secret').value.trim();
+      if(!key||!key.startsWith('S')){showToast('Enter a valid Stellar secret key');return}
+      const acct=getAccount();
+      acct.secret=btoa(key);
+      acct.address='G'+key.slice(1,56);
+      setAccount(acct);
+      showToast('Wallet connected');
+      setStep('limits');
+    }
 
-    function approve(){
-      const cap=document.getElementById('spend-cap').value;
-      const auto=document.getElementById('auto-toggle').classList.contains('on');
-      const clientKey='mc_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
-      const mcpUrl=window.location.origin+'/mcp?client='+clientKey;
-      const agent={
-        id:'agent_'+Date.now(),
-        name:'My Agent',
-        clientKey:clientKey,
-        mcpUrl:mcpUrl,
-        permissions:['airtime','data','electricity'],
-        operations:['pay'],
-        dailyLimit:(parseFloat(cap)*0.2).toFixed(2),
-        perTxLimit:(parseFloat(cap)*0.06).toFixed(2),
-        approvalMode:auto?'autonomous':'always-ask',
-        spendingCap:parseFloat(cap),
-        enabled:true,
-        createdAt:new Date().toISOString(),
-      };
-      const agents=getAgents();
-      agents.push(agent);
-      setAgents(agents);
-      addAudit('created',agent.name,agent.id,'Agent client created');
-
-      document.getElementById('step2').classList.add('done');
-      document.getElementById('step2').querySelector('.step-num').innerHTML='<span class="check">&#10003;</span>';
-      document.getElementById('step3').classList.add('done');
-      document.getElementById('step3').querySelector('.step-num').innerHTML='<span class="check">&#10003;</span>';
-
-      closePopup();
-      showToast('Agent approved');
-      setTimeout(showDashboard,600);
+    function setLimits(){
+      const acct=getAccount();
+      acct.dailyLimit=parseFloat(document.getElementById('ob-daily').value)||100;
+      acct.perTxLimit=parseFloat(document.getElementById('ob-pertx').value)||25;
+      acct.onboarded=true;
+      setAccount(acct);
+      showToast('Account ready');
+      showScreen('dashboard');
     }
 
     // --- Dashboard ---
     function refreshDashboard(){
+      const acct=getAccount();
       const agents=getAgents();
       const active=agents.filter(a=>a.enabled);
       document.getElementById('dash-balance').textContent='0.00 USDC';
       document.getElementById('dash-daily').textContent='$0.00';
       document.getElementById('dash-agents').textContent=active.length;
       renderAgentTable();
-      renderActivity();
     }
 
     function renderAgentTable(){
       const agents=getAgents();
       const tbody=document.getElementById('agents-table');
-      if(!agents.length){
-        tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents connected</td></tr>';
-        return;
-      }
+      if(!agents.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet. Create one to get started.</td></tr>';return}
       tbody.innerHTML=agents.map(a=>{
-        const mode=a.approvalMode==='always-ask'?'Always Ask':a.approvalMode==='above-limit'?'Above Limit':'Autonomous';
+        const mode=a.approvalMode==='always-ask'?'Always Ask':'Autonomous';
         return '<tr class="clickable" onclick="showAgentDetail(\''+a.id+'\')">'
           +'<td><div class="agent-name">'+esc(a.name)+'</div><div class="agent-id">'+a.id+'</div></td>'
-          +'<td><div class="perm-list">'+a.permissions.map(p=>'<span class="perm-tag">'+p+'</span>').join('')+'</div></td>'
+          +'<td><div class="perm-list">'+a.operations.map(p=>'<span class="perm-tag">'+p+'</span>').join('')+'</div></td>'
           +'<td><span class="limit-cell">$'+a.dailyLimit+'/$'+a.perTxLimit+'</span></td>'
           +'<td><span class="limit-cell">'+mode+'</span></td>'
-          +'<td>'+(a.enabled?'<span class="status-active">Active</span>':'<span class="status-revoked">Revoked</span>')+'</td>'
-          +'</tr>';
+          +'<td>'+(a.enabled?'<span class="status-active">Active</span>':'<span class="status-revoked">Revoked</span>')+'</td></tr>';
       }).join('');
     }
+
+    // --- Create Agent ---
+    function toggleCheck(el){const cb=el.querySelector('input[type="checkbox"]');cb.checked=!cb.checked;el.classList.toggle('checked',cb.checked)}
+    function selectMode(el){el.closest('.checkbox-group').querySelectorAll('.checkbox-item').forEach(i=>i.classList.remove('checked'));el.classList.add('checked');el.querySelector('input[type="radio"]').checked=true}
+
+    function createAgent(){
+      const name=document.getElementById('agent-name').value.trim();
+      if(!name){showToast('Enter a name');return}
+      const ops=[];
+      if(document.getElementById('op-pay').checked)ops.push('pay');
+      if(document.getElementById('op-swap').checked)ops.push('swap');
+      if(document.getElementById('op-sign').checked)ops.push('sign');
+      if(!ops.length){showToast('Select at least one operation');return}
+      const mode=document.querySelector('input[name="mode"]:checked').id==='mode-always'?'always-ask':'autonomous';
+      const daily=document.getElementById('agent-daily').value;
+      const pertx=document.getElementById('agent-per-tx').value;
+      const clientKey='mc_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+      const mcpUrl=window.location.origin+'/mcp';
+      const agent={id:'agent_'+Date.now(),name,clientKey,mcpUrl,operations:ops,dailyLimit:daily,perTxLimit:pertx,approvalMode:mode,enabled:true,createdAt:new Date().toISOString()};
+      const agents=getAgents();agents.push(agent);setAgents(agents);
+      addAudit('created',name,agent.id,'Agent client created');
+      document.getElementById('created-key').textContent=clientKey;
+      document.getElementById('created-mcp').value=mcpUrl;
+      showScreen('agent-created');
+    }
+
+    function copyCreatedMcp(){navigator.clipboard.writeText(document.getElementById('created-mcp').value);showToast('MCP URL copied')}
 
     // --- Agent Detail ---
     let currentDetailId=null;
     function showAgentDetail(id){
       currentDetailId=id;
-      const agent=getAgents().find(a=>a.id===id);
-      if(!agent)return;
+      const agent=getAgents().find(a=>a.id===id);if(!agent)return;
       document.getElementById('detail-name').textContent=agent.name;
       document.getElementById('detail-id').textContent=agent.id;
       document.getElementById('detail-key').textContent=agent.clientKey.slice(0,12)+'...'+agent.clientKey.slice(-6);
       document.getElementById('detail-mcp').textContent=agent.mcpUrl;
-      const mode=agent.approvalMode==='always-ask'?'Always Ask':agent.approvalMode==='above-limit'?'Approve Above Limit':'Autonomous Within Policy';
-      document.getElementById('detail-mode').textContent=mode;
+      document.getElementById('detail-mode').textContent=agent.approvalMode==='always-ask'?'Always Ask':'Autonomous Within Policy';
       document.getElementById('detail-daily').textContent='$'+agent.dailyLimit;
       document.getElementById('detail-pertx').textContent='$'+agent.perTxLimit;
-      document.getElementById('detail-ops').textContent=(agent.operations||agent.permissions).join(', ');
+      document.getElementById('detail-ops').textContent=agent.operations.join(', ');
       document.getElementById('detail-created').textContent=new Date(agent.createdAt).toLocaleDateString();
       const badge=document.getElementById('detail-status');
-      if(agent.enabled){badge.className='badge badge-green';badge.innerHTML='<span class="dot"></span>Active';}
-      else{badge.className='badge';badge.style.background='var(--red-dim)';badge.style.color='var(--red)';badge.innerHTML='<span class="dot"></span>Revoked';}
+      if(agent.enabled){badge.className='badge badge-green';badge.innerHTML='<span class="dot"></span>Active'}
+      else{badge.className='badge';badge.style.background='var(--red-dim)';badge.style.color='var(--red)';badge.innerHTML='<span class="dot"></span>Revoked'}
       showScreen('agent-detail');
     }
 
     function revokeAgent(){
-      if(!currentDetailId)return;
-      if(!confirm('Revoke this agent? This cannot be undone.'))return;
-      const agents=getAgents();
-      const agent=agents.find(a=>a.id===currentDetailId);
-      if(agent){
-        agent.enabled=false;
-        setAgents(agents);
-        addAudit('revoked',agent.name,agent.id,'Agent access revoked');
-        showToast('Agent revoked');
-        showScreen('dashboard');
-      }
+      if(!currentDetailId||!confirm('Revoke this agent?'))return;
+      const agents=getAgents();const agent=agents.find(a=>a.id===currentDetailId);
+      if(agent){agent.enabled=false;setAgents(agents);addAudit('revoked',agent.name,agent.id,'Revoked');showToast('Agent revoked');showScreen('dashboard')}
+    }
+
+    // --- Pending Approvals ---
+    function renderPending(){
+      const pending=getPending();
+      const el=document.getElementById('pending-list');
+      if(!pending.length){el.innerHTML='<div class="empty-state"><p>No pending operations</p></div>';return}
+      el.innerHTML=pending.map(op=>'<div class="pending-card">'
+        +'<div class="pending-header"><span style="font-weight:600;font-size:14px">'+esc(op.agentName)+'</span><span style="font-size:12px;color:var(--text-muted)">'+timeAgo(op.createdAt)+'</span></div>'
+        +'<div class="pending-body">'
+        +'<div class="pending-row"><span class="pending-label">Operation</span><span class="pending-value">'+esc(op.operation)+'</span></div>'
+        +'<div class="pending-row"><span class="pending-label">Destination</span><span class="pending-value mono" style="font-size:12px">'+esc(op.destination)+'</span></div>'
+        +'<div class="pending-row"><span class="pending-label">Amount</span><span class="pending-value amount">$'+op.amount+' USDC</span></div>'
+        +'</div>'
+        +'<div class="pending-actions">'
+        +'<button class="btn btn-deny" onclick="denyPending(\''+op.id+'\')">Deny</button>'
+        +'<button class="btn btn-approve" onclick="approvePending(\''+op.id+'\')">Approve</button>'
+        +'</div></div>').join('');
+    }
+
+    function approvePending(id){
+      openPasskey('Approve this operation?',function(){
+        const pending=getPending();const op=pending.find(p=>p.id===id);
+        if(op){setPending(pending.filter(p=>p.id!==id));addAudit('approved',op.agentName,op.agentId,op.operation+' $'+op.amount+' to '+op.destination);showToast('Approved');renderPending()}
+      });
+    }
+
+    function denyPending(id){
+      const pending=getPending();const op=pending.find(p=>p.id===id);
+      if(op){setPending(pending.filter(p=>p.id!==id));addAudit('denied',op.agentName,op.agentId,op.operation+' denied');showToast('Denied');renderPending()}
     }
 
     // --- Activity ---
     function renderActivity(){
-      const audit=getAudit();
-      const el=document.getElementById('activity-log');
-      if(!audit.length){el.innerHTML='<div class="empty-state"><p>No activity yet</p></div>';return;}
+      const audit=getAudit();const el=document.getElementById('activity-log');
+      if(!audit.length){el.innerHTML='<div class="empty-state"><p>No activity yet</p></div>';return}
       el.innerHTML=audit.slice().reverse().map(a=>{
         const icon=a.type==='approved'?'&#10003;':a.type==='denied'?'&#10007;':a.type==='revoked'?'&#9888;':'+';
-        return '<div class="activity-item">'
-          +'<div class="activity-icon '+a.type+'">'+icon+'</div>'
-          +'<div class="activity-content"><div class="activity-title">'+esc(a.title)+'</div>'
-          +'<div class="activity-desc">'+esc(a.desc)+'</div></div>'
-          +'<div class="activity-time">'+timeAgo(a.timestamp)+'</div>'
-          +'</div>';
+        return '<div class="activity-item"><div class="activity-icon '+a.type+'">'+icon+'</div><div class="activity-content"><div class="activity-title">'+esc(a.title)+'</div><div class="activity-desc">'+esc(a.desc)+'</div></div><div class="activity-time">'+timeAgo(a.timestamp)+'</div></div>';
       }).join('');
     }
     function addAudit(type,agentName,agentId,desc){
-      const audit=getAudit();
-      audit.push({id:'audit_'+Date.now(),type,agentName,agentId,desc,timestamp:new Date().toISOString()});
-      setAudit(audit);
+      const audit=getAudit();audit.push({id:'audit_'+Date.now(),type,agentName,agentId,desc,timestamp:new Date().toISOString()});setAudit(audit);
     }
 
     // --- Settings ---
     function renderSettings(){
-      const agents=getAgents();
-      if(agents.length){
-        document.getElementById('settings-address').textContent=agents[0].clientKey.slice(0,20)+'...';
-      }
+      const acct=getAccount();if(!acct)return;
+      document.getElementById('settings-address').textContent=acct.address||'—';
     }
-    function savePasskey(){
-      const pk=document.getElementById('settings-passkey').value.trim();
-      if(!pk){showToast('Enter a passkey');return;}
-      localStorage.setItem('mc-passkey',btoa(pk));
-      showToast('Passkey saved');
-    }
-    function disconnectWallet(){
-      if(!confirm('Disconnect and clear all data?'))return;
-      localStorage.removeItem('mc-agents');
-      localStorage.removeItem('mc-audit');
-      localStorage.removeItem('mc-passkey');
-      showScreen('onboarding');
+    function copyMcpUrl(){navigator.clipboard.writeText(document.getElementById('mcp-url').value);showToast('MCP URL copied')}
+    function resetAccount(){
+      if(!confirm('Clear all data?'))return;
+      localStorage.removeItem('mc-account');localStorage.removeItem('mc-agents');localStorage.removeItem('mc-audit');localStorage.removeItem('mc-pending');
+      location.reload();
     }
 
     // --- Kill Switch ---
     function killSwitch(){
-      if(!confirm('Revoke ALL agent clients immediately?'))return;
-      const agents=getAgents();
-      agents.forEach(a=>{
-        if(a.enabled){a.enabled=false;addAudit('revoked',a.name,a.id,'Revoked via kill switch');}
-      });
-      setAgents(agents);
-      showToast('All agents revoked');
-      refreshDashboard();
+      if(!confirm('Revoke ALL agents?'))return;
+      const agents=getAgents();agents.forEach(a=>{if(a.enabled){a.enabled=false;addAudit('revoked',a.name,a.id,'Kill switch')}});
+      setAgents(agents);showToast('All agents revoked');refreshDashboard();
     }
 
     // --- Passkey Modal ---
-    let passkeyCallback=null;
-    function openPasskey(prompt,cb){
-      document.getElementById('passkey-prompt').textContent=prompt;
-      document.getElementById('passkey-input').value='';
-      document.getElementById('passkey-modal').classList.add('open');
-      passkeyCallback=cb;
-    }
-    function closePasskey(){document.getElementById('passkey-modal').classList.remove('open');passkeyCallback=null;}
+    let passkeyCb=null;
+    function openPasskey(prompt,cb){document.getElementById('passkey-prompt').textContent=prompt;document.getElementById('passkey-input').value='';document.getElementById('passkey-modal').style.display='flex';passkeyCb=cb}
+    function closePasskey(){document.getElementById('passkey-modal').style.display='none';passkeyCb=null}
     function verifyPasskey(){
-      const saved=localStorage.getItem('mc-passkey');
-      const input=document.getElementById('passkey-input').value;
-      if(saved&&btoa(input)!==saved){showToast('Incorrect passkey');return;}
-      closePasskey();
-      if(passkeyCallback)passkeyCallback();
+      const acct=getAccount();const input=document.getElementById('passkey-input').value;
+      if(acct&&acct.passkey&&btoa(input)!==acct.passkey){showToast('Incorrect passkey');return}
+      closePasskey();if(passkeyCb)passkeyCb();
     }
 
     // --- Helpers ---
-    function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-    function timeAgo(ts){
-      const diff=Date.now()-new Date(ts).getTime();
-      if(diff<60000)return 'just now';
-      if(diff<3600000)return Math.floor(diff/60000)+'m ago';
-      if(diff<86400000)return Math.floor(diff/3600000)+'h ago';
-      return Math.floor(diff/86400000)+'d ago';
-    }
-    function showToast(msg){
-      const el=document.getElementById('toast');
-      el.textContent=msg;el.classList.add('show');
-      setTimeout(()=>el.classList.remove('show'),2500);
-    }
+    function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+    function timeAgo(ts){const d=Date.now()-new Date(ts).getTime();if(d<60000)return 'just now';if(d<3600000)return Math.floor(d/60000)+'m ago';if(d<86400000)return Math.floor(d/3600000)+'h ago';return Math.floor(d/86400000)+'d ago'}
+    function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
   </script>
 </body>
 </html>
