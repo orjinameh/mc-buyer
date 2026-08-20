@@ -1,3 +1,4 @@
+import { Db } from 'mongodb';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { ToolRegistry, ToolContext } from './tools/registry.js';
@@ -8,9 +9,9 @@ import { PaymentAuthorizationManager } from '../payments/authorization.js';
 import { SettlementLayer } from '../payments/settlement.js';
 import { VTpassProvider } from '../vtu/providers/vtpass.js';
 import { StellarAccountManager } from '../stellar/account.js';
-import type { IExchangeRateProvider } from '9bridge';
 
 export interface MCPManagers {
+  db: Db;
   accounts: SpendingAccountManager;
   policies: AgentPolicyManager;
   quotes: QuoteManager;
@@ -21,10 +22,10 @@ export interface MCPManagers {
 }
 
 export function createMCPServer(managers: MCPManagers): McpServer {
-  const { accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts } = managers;
+  const { db, accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts } = managers;
 
   const tools = new ToolRegistry(
-    accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts,
+    db, accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts,
   );
 
   const server = new McpServer({
@@ -201,6 +202,32 @@ export function createMCPServer(managers: MCPManagers): McpServer {
         provider: args.provider,
         bundlePlan: args.bundlePlan,
         quoteId: args.quoteId,
+      }, ctx);
+      return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+    },
+  );
+
+  server.tool(
+    'swap_tokens',
+    'Swap between Stellar assets with slippage protection. Requires fresh on-chain price quote. Validates Stellar destination address and memo.',
+    {
+      sourceAsset: z.string().describe('Source asset code (e.g. USDC, XLM)'),
+      destinationAsset: z.string().describe('Destination asset code (e.g. USDT, BTC)'),
+      amount: z.string().describe('Amount of source asset to swap'),
+      destinationAddress: z.string().describe('Stellar public key (G...) to receive swapped tokens'),
+      memo: z.string().optional().describe('Stellar memo if required by destination'),
+    },
+    async (args: any, extra: any) => {
+      const ctx: ToolContext = {
+        userId: extra?.userId ?? 'anonymous',
+        agentId: extra?.agentId ?? 'default-agent',
+      };
+      const result = await tools.swapTokens({
+        sourceAsset: args.sourceAsset,
+        destinationAsset: args.destinationAsset,
+        amount: args.amount,
+        destinationAddress: args.destinationAddress,
+        memo: args.memo,
       }, ctx);
       return { content: [{ type: 'text', text: JSON.stringify(result) }] };
     },

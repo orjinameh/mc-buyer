@@ -64,7 +64,7 @@ async function main() {
     network: config.stellar.network,
     contractId: config.stellar.sorobanContractId,
   });
-  const mcpManagers = { accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts };
+  const mcpManagers = { db, accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts };
 
   // --- MCP OAuth Setup ---
   const externalUrl = config.render.externalUrl || `http://localhost:${config.port}`;

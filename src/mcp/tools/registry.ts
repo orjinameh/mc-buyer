@@ -1,16 +1,25 @@
-import { z } from 'zod';
+import { Db } from 'mongodb';
 import { SpendingAccountManager } from '../../accounts/spendingAccount.js';
 import { AgentPolicyManager } from '../../agents/policies.js';
 import { QuoteManager } from '../../payments/quotes.js';
 import { PaymentAuthorizationManager } from '../../payments/authorization.js';
 import { SettlementLayer } from '../../payments/settlement.js';
 import { VTpassProvider } from '../../vtu/providers/vtpass.js';
-import { findAirtimeAmount, findDataPlan, findCablePlan, AIRTIME_CATALOG, DATA_CATALOG, CABLE_CATALOG } from '../../vtu/catalog.js';
+import { findAirtimeAmount, findDataPlan, findCablePlan } from '../../vtu/catalog.js';
 import { simulateStellarSettlement } from '../../stellar/settlement.js';
 import { StellarAccountManager } from '../../stellar/account.js';
-import { MCBuyerError, InsufficientBalanceError, ExpiredQuoteError, UnauthorizedAgentError } from '../../errors/index.js';
+import { MCBuyerError } from '../../errors/index.js';
 import { config } from '../../config/env.js';
 import type { ServiceQuote } from '../../stellar/types.js';
+import {
+  enforceCategoryCap,
+  enforceDailyWalletCap,
+  validateSlippage,
+  validateStellarDestination,
+  acquireTransactionLock,
+  releaseTransactionLock,
+  type PathPaymentQuote,
+} from '../../security/protocol.js';
 
 export interface ToolContext {
   userId: string;
@@ -19,6 +28,7 @@ export interface ToolContext {
 
 export class ToolRegistry {
   constructor(
+    private db: Db,
     private accounts: SpendingAccountManager,
     private policies: AgentPolicyManager,
     private quotes: QuoteManager,
@@ -34,6 +44,18 @@ export class ToolRegistry {
     } catch {
       return await this.accounts.createAccount(userId, config.stellar.network);
     }
+  }
+
+  private async gatekeeper(
+    service: string,
+    assetAmount: string,
+    userId: string,
+    ctx: ToolContext,
+  ): Promise<{ cap: ReturnType<typeof enforceCategoryCap> }> {
+    const cap = enforceCategoryCap(service, assetAmount);
+    await enforceDailyWalletCap(this.db, userId, cap.amount);
+    await this.policies.authorize(ctx.agentId, service as any, assetAmount);
+    return { cap };
   }
 
   async getSpendingBalance(ctx: ToolContext) {
@@ -79,57 +101,73 @@ export class ToolRegistry {
     ctx: ToolContext,
   ) {
     const quote = await this.quotes.getQuote(params.quoteId);
-    await this.policies.authorize(ctx.agentId, 'airtime', quote.assetAmount);
+    const sessionId = `airtime_${ctx.userId}_${params.quoteId}`;
 
-    const auth = await this.authorizations.create({
-      userId: ctx.userId,
-      agentId: ctx.agentId,
-      quote,
-      service: 'airtime',
-      destination: { phoneNumber: params.phoneNumber, network: params.network },
-    });
-
-    const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
-    await simulateStellarSettlement({
-      authorization: auth,
-      stellarAccount: stellarAcc.publicKey,
-      contractId: this.stellarAccounts.getContractId(),
-      network: this.stellarAccounts.getNetwork(),
-    });
-
-    const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
+    if (!acquireTransactionLock(sessionId, 'airtime')) {
+      throw new MCBuyerError(
+        'Transaction already in progress. Wait for it to complete or start a fresh quote.',
+        'TRANSACTION_IN_PROGRESS',
+        409,
+      );
+    }
 
     try {
-      const result = await this.vtpass.buyAirtime({
-        phoneNumber: params.phoneNumber,
-        network: params.network,
-        amountNGN: params.amountNGN,
-        reference: auth.reference,
+      await this.gatekeeper('airtime', quote.assetAmount, ctx.userId, ctx);
+
+      const auth = await this.authorizations.create({
+        userId: ctx.userId,
+        agentId: ctx.agentId,
+        quote,
+        service: 'airtime',
+        destination: { phoneNumber: params.phoneNumber, network: params.network },
       });
 
-      await this.authorizations.execute(auth.id, result.providerReference ?? '');
+      const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
+      await simulateStellarSettlement({
+        authorization: auth,
+        stellarAccount: stellarAcc.publicKey,
+        contractId: this.stellarAccounts.getContractId(),
+        network: this.stellarAccounts.getNetwork(),
+      });
 
-      return {
-        success: true,
-        transactionId: debitTx.id,
-        authorizationId: auth.id,
-        reference: auth.reference,
-        providerReference: result.providerReference,
-        assetAmount: quote.assetAmount,
-        fiatAmount: quote.fiatAmount,
-        message: result.message,
-      };
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
-      await this.authorizations.fail(auth.id, errorMsg);
-      await this.settlement.reverseAndCredit(ctx.userId, auth.id);
+      const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
 
-      return {
-        success: false,
-        authorizationId: auth.id,
-        error: errorMsg,
-        reversed: true,
-      };
+      try {
+        const result = await this.vtpass.buyAirtime({
+          phoneNumber: params.phoneNumber,
+          network: params.network,
+          amountNGN: params.amountNGN,
+          reference: auth.reference,
+        });
+
+        await this.authorizations.execute(auth.id, result.providerReference ?? '');
+
+        return {
+          success: true,
+          transactionId: debitTx.id,
+          authorizationId: auth.id,
+          reference: auth.reference,
+          providerReference: result.providerReference,
+          assetAmount: quote.assetAmount,
+          fiatAmount: quote.fiatAmount,
+          category: 'airtime_data',
+          cap: '50 USDC',
+          message: result.message,
+        };
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
+        await this.authorizations.fail(auth.id, errorMsg);
+        await this.settlement.reverseAndCredit(ctx.userId, auth.id);
+
+        return {
+          success: false,
+          authorizationId: auth.id,
+          error: errorMsg,
+          reversed: true,
+        };
+      }
+    } finally {
+      releaseTransactionLock(sessionId);
     }
   }
 
@@ -168,57 +206,73 @@ export class ToolRegistry {
     ctx: ToolContext,
   ) {
     const quote = await this.quotes.getQuote(params.quoteId);
-    await this.policies.authorize(ctx.agentId, 'data', quote.assetAmount);
+    const sessionId = `data_${ctx.userId}_${params.quoteId}`;
 
-    const auth = await this.authorizations.create({
-      userId: ctx.userId,
-      agentId: ctx.agentId,
-      quote,
-      service: 'data',
-      destination: { phoneNumber: params.phoneNumber, network: params.network, plan: params.plan },
-    });
-
-    const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
-    await simulateStellarSettlement({
-      authorization: auth,
-      stellarAccount: stellarAcc.publicKey,
-      contractId: this.stellarAccounts.getContractId(),
-      network: this.stellarAccounts.getNetwork(),
-    });
-
-    const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
+    if (!acquireTransactionLock(sessionId, 'data')) {
+      throw new MCBuyerError(
+        'Transaction already in progress. Wait for it to complete or start a fresh quote.',
+        'TRANSACTION_IN_PROGRESS',
+        409,
+      );
+    }
 
     try {
-      const result = await this.vtpass.buyData({
-        phoneNumber: params.phoneNumber,
-        network: params.network,
-        plan: params.plan,
-        reference: auth.reference,
+      await this.gatekeeper('data', quote.assetAmount, ctx.userId, ctx);
+
+      const auth = await this.authorizations.create({
+        userId: ctx.userId,
+        agentId: ctx.agentId,
+        quote,
+        service: 'data',
+        destination: { phoneNumber: params.phoneNumber, network: params.network, plan: params.plan },
       });
 
-      await this.authorizations.execute(auth.id, result.providerReference ?? '');
+      const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
+      await simulateStellarSettlement({
+        authorization: auth,
+        stellarAccount: stellarAcc.publicKey,
+        contractId: this.stellarAccounts.getContractId(),
+        network: this.stellarAccounts.getNetwork(),
+      });
 
-      return {
-        success: true,
-        transactionId: debitTx.id,
-        authorizationId: auth.id,
-        reference: auth.reference,
-        providerReference: result.providerReference,
-        assetAmount: quote.assetAmount,
-        fiatAmount: quote.fiatAmount,
-        message: result.message,
-      };
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
-      await this.authorizations.fail(auth.id, errorMsg);
-      await this.settlement.reverseAndCredit(ctx.userId, auth.id);
+      const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
 
-      return {
-        success: false,
-        authorizationId: auth.id,
-        error: errorMsg,
-        reversed: true,
-      };
+      try {
+        const result = await this.vtpass.buyData({
+          phoneNumber: params.phoneNumber,
+          network: params.network,
+          plan: params.plan,
+          reference: auth.reference,
+        });
+
+        await this.authorizations.execute(auth.id, result.providerReference ?? '');
+
+        return {
+          success: true,
+          transactionId: debitTx.id,
+          authorizationId: auth.id,
+          reference: auth.reference,
+          providerReference: result.providerReference,
+          assetAmount: quote.assetAmount,
+          fiatAmount: quote.fiatAmount,
+          category: 'airtime_data',
+          cap: '50 USDC',
+          message: result.message,
+        };
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
+        await this.authorizations.fail(auth.id, errorMsg);
+        await this.settlement.reverseAndCredit(ctx.userId, auth.id);
+
+        return {
+          success: false,
+          authorizationId: auth.id,
+          error: errorMsg,
+          reversed: true,
+        };
+      }
+    } finally {
+      releaseTransactionLock(sessionId);
     }
   }
 
@@ -244,59 +298,75 @@ export class ToolRegistry {
     ctx: ToolContext,
   ) {
     const quote = await this.quotes.getQuote(params.quoteId);
-    await this.policies.authorize(ctx.agentId, 'electricity', quote.assetAmount);
+    const sessionId = `electricity_${ctx.userId}_${params.quoteId}`;
 
-    const auth = await this.authorizations.create({
-      userId: ctx.userId,
-      agentId: ctx.agentId,
-      quote,
-      service: 'electricity',
-      destination: { meterNumber: params.meterNumber, discoProvider: params.discoProvider },
-    });
-
-    const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
-    await simulateStellarSettlement({
-      authorization: auth,
-      stellarAccount: stellarAcc.publicKey,
-      contractId: this.stellarAccounts.getContractId(),
-      network: this.stellarAccounts.getNetwork(),
-    });
-
-    const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
+    if (!acquireTransactionLock(sessionId, 'electricity')) {
+      throw new MCBuyerError(
+        'Transaction already in progress. Wait for it to complete or start a fresh quote.',
+        'TRANSACTION_IN_PROGRESS',
+        409,
+      );
+    }
 
     try {
-      const result = await this.vtpass.payElectricity({
-        meterNumber: params.meterNumber,
-        discoProvider: params.discoProvider,
-        amountNGN: params.amountNGN,
-        reference: auth.reference,
+      await this.gatekeeper('electricity', quote.assetAmount, ctx.userId, ctx);
+
+      const auth = await this.authorizations.create({
+        userId: ctx.userId,
+        agentId: ctx.agentId,
+        quote,
+        service: 'electricity',
+        destination: { meterNumber: params.meterNumber, discoProvider: params.discoProvider },
       });
 
-      await this.authorizations.execute(auth.id, result.providerReference ?? '');
+      const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
+      await simulateStellarSettlement({
+        authorization: auth,
+        stellarAccount: stellarAcc.publicKey,
+        contractId: this.stellarAccounts.getContractId(),
+        network: this.stellarAccounts.getNetwork(),
+      });
 
-      return {
-        success: true,
-        transactionId: debitTx.id,
-        authorizationId: auth.id,
-        reference: auth.reference,
-        providerReference: result.providerReference,
-        token: result.metadata.token,
-        units: result.metadata.units,
-        assetAmount: quote.assetAmount,
-        fiatAmount: quote.fiatAmount,
-        message: result.message,
-      };
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
-      await this.authorizations.fail(auth.id, errorMsg);
-      await this.settlement.reverseAndCredit(ctx.userId, auth.id);
+      const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
 
-      return {
-        success: false,
-        authorizationId: auth.id,
-        error: errorMsg,
-        reversed: true,
-      };
+      try {
+        const result = await this.vtpass.payElectricity({
+          meterNumber: params.meterNumber,
+          discoProvider: params.discoProvider,
+          amountNGN: params.amountNGN,
+          reference: auth.reference,
+        });
+
+        await this.authorizations.execute(auth.id, result.providerReference ?? '');
+
+        return {
+          success: true,
+          transactionId: debitTx.id,
+          authorizationId: auth.id,
+          reference: auth.reference,
+          providerReference: result.providerReference,
+          token: result.metadata.token,
+          units: result.metadata.units,
+          assetAmount: quote.assetAmount,
+          fiatAmount: quote.fiatAmount,
+          category: 'electricity_bills',
+          cap: '250 USDC',
+          message: result.message,
+        };
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
+        await this.authorizations.fail(auth.id, errorMsg);
+        await this.settlement.reverseAndCredit(ctx.userId, auth.id);
+
+        return {
+          success: false,
+          authorizationId: auth.id,
+          error: errorMsg,
+          reversed: true,
+        };
+      }
+    } finally {
+      releaseTransactionLock(sessionId);
     }
   }
 
@@ -334,57 +404,133 @@ export class ToolRegistry {
     ctx: ToolContext,
   ) {
     const quote = await this.quotes.getQuote(params.quoteId);
-    await this.policies.authorize(ctx.agentId, 'cable', quote.assetAmount);
+    const sessionId = `cable_${ctx.userId}_${params.quoteId}`;
 
-    const auth = await this.authorizations.create({
-      userId: ctx.userId,
-      agentId: ctx.agentId,
-      quote,
-      service: 'cable',
-      destination: { smartCardNumber: params.smartCardNumber, provider: params.provider },
-    });
-
-    const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
-    await simulateStellarSettlement({
-      authorization: auth,
-      stellarAccount: stellarAcc.publicKey,
-      contractId: this.stellarAccounts.getContractId(),
-      network: this.stellarAccounts.getNetwork(),
-    });
-
-    const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
+    if (!acquireTransactionLock(sessionId, 'cable')) {
+      throw new MCBuyerError(
+        'Transaction already in progress. Wait for it to complete or start a fresh quote.',
+        'TRANSACTION_IN_PROGRESS',
+        409,
+      );
+    }
 
     try {
-      const result = await this.vtpass.renewCable({
-        smartCardNumber: params.smartCardNumber,
-        provider: params.provider,
-        bundlePlan: params.bundlePlan,
-        reference: auth.reference,
+      await this.gatekeeper('cable', quote.assetAmount, ctx.userId, ctx);
+
+      const auth = await this.authorizations.create({
+        userId: ctx.userId,
+        agentId: ctx.agentId,
+        quote,
+        service: 'cable',
+        destination: { smartCardNumber: params.smartCardNumber, provider: params.provider },
       });
 
-      await this.authorizations.execute(auth.id, result.providerReference ?? '');
+      const stellarAcc = await this.stellarAccounts.getOrCreate(ctx.userId);
+      await simulateStellarSettlement({
+        authorization: auth,
+        stellarAccount: stellarAcc.publicKey,
+        contractId: this.stellarAccounts.getContractId(),
+        network: this.stellarAccounts.getNetwork(),
+      });
+
+      const debitTx = await this.settlement.settleAndDebit(ctx.userId, auth);
+
+      try {
+        const result = await this.vtpass.renewCable({
+          smartCardNumber: params.smartCardNumber,
+          provider: params.provider,
+          bundlePlan: params.bundlePlan,
+          reference: auth.reference,
+        });
+
+        await this.authorizations.execute(auth.id, result.providerReference ?? '');
+
+        return {
+          success: true,
+          transactionId: debitTx.id,
+          authorizationId: auth.id,
+          reference: auth.reference,
+          providerReference: result.providerReference,
+          assetAmount: quote.assetAmount,
+          fiatAmount: quote.fiatAmount,
+          category: 'electricity_bills',
+          cap: '250 USDC',
+          message: result.message,
+        };
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
+        await this.authorizations.fail(auth.id, errorMsg);
+        await this.settlement.reverseAndCredit(ctx.userId, auth.id);
+
+        return {
+          success: false,
+          authorizationId: auth.id,
+          error: errorMsg,
+          reversed: true,
+        };
+      }
+    } finally {
+      releaseTransactionLock(sessionId);
+    }
+  }
+
+  async swapTokens(
+    params: {
+      sourceAsset: string;
+      destinationAsset: string;
+      amount: string;
+      destinationAddress: string;
+      memo?: string;
+    },
+    ctx: ToolContext,
+  ) {
+    const destValidation = validateStellarDestination(params.destinationAddress, params.memo);
+    if (!destValidation.valid) {
+      throw new MCBuyerError(destValidation.error!, 'INVALID_STELLAR_DESTINATION', 400);
+    }
+
+    const amount = parseFloat(params.amount);
+    const sessionId = `swap_${ctx.userId}_${params.sourceAsset}_${params.destinationAsset}_${Date.now()}`;
+
+    if (!acquireTransactionLock(sessionId, 'swap')) {
+      throw new MCBuyerError(
+        'Transaction already in progress. Wait for it to complete or request a fresh quote.',
+        'TRANSACTION_IN_PROGRESS',
+        409,
+      );
+    }
+
+    try {
+      await this.gatekeeper('swap', params.amount, ctx.userId, ctx);
+
+      const quote: PathPaymentQuote = {
+        sourceAsset: params.sourceAsset,
+        destinationAsset: params.destinationAsset,
+        sourceAmount: params.amount,
+        destinationAmount: (amount * 0.995).toFixed(6),
+        expectedPrice: '1.0',
+        networkFee: '0.00001',
+        slippageBps: 50,
+      };
+
+      validateSlippage(quote);
 
       return {
         success: true,
-        transactionId: debitTx.id,
-        authorizationId: auth.id,
-        reference: auth.reference,
-        providerReference: result.providerReference,
-        assetAmount: quote.assetAmount,
-        fiatAmount: quote.fiatAmount,
-        message: result.message,
+        sourceAsset: params.sourceAsset,
+        destinationAsset: params.destinationAsset,
+        sourceAmount: params.amount,
+        destinationAmount: quote.destinationAmount,
+        expectedPrice: quote.expectedPrice,
+        networkFee: quote.networkFee,
+        slippage: `${quote.slippageBps / 100}%`,
+        destinationAddress: params.destinationAddress,
+        category: 'flights_shopping_swap',
+        cap: '3000 USDC',
+        message: 'Swap quote validated. Slippage within threshold.',
       };
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'VTU execution failed';
-      await this.authorizations.fail(auth.id, errorMsg);
-      await this.settlement.reverseAndCredit(ctx.userId, auth.id);
-
-      return {
-        success: false,
-        authorizationId: auth.id,
-        error: errorMsg,
-        reversed: true,
-      };
+    } finally {
+      releaseTransactionLock(sessionId);
     }
   }
 

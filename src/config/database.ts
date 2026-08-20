@@ -21,6 +21,7 @@ export async function connectDatabase(uri: string): Promise<Db> {
   await state.db.collection('payment_authorizations').createIndex({ quoteId: 1 });
     await state.db.collection('agent_policies').createIndex({ agentId: 1 }, { unique: true });
     await state.db.collection('oauth_clients').createIndex({ client_id: 1 }, { unique: true });
+    await state.db.collection('daily_wallet_spends').createIndex({ key: 1 }, { unique: true });
 
   return state.db;
 }
