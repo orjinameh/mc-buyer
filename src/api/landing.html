@@ -23,8 +23,8 @@
     .mkt-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;max-width:800px;margin:0 auto}
     .mkt-hero h1{font-size:48px;font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:24px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
     .mkt-hero .anim-line{position:relative;height:56px;overflow:hidden;width:100%}
-    .mkt-hero .anim-word{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;animation:fadeSlide 3s ease-in-out infinite}
-    .mkt-hero .anim-word:nth-child(1){animation-delay:0s}.mkt-hero .anim-word:nth-child(2){animation-delay:3s}.mkt-hero .anim-word:nth-child(3){animation-delay:6s}.mkt-hero .anim-word:nth-child(4){animation-delay:9s}.mkt-hero .anim-word:nth-child(5){animation-delay:12s}.mkt-hero .anim-word:nth-child(6){animation-delay:15s}
+    .mkt-hero .anim-word{position:absolute;left:0;right:0;opacity:0;transition:opacity .4s ease,transform .4s ease;transform:translateY(10px)}
+    .mkt-hero .anim-word.visible{opacity:1;transform:translateY(0)}
     .mkt-hero .anim-word .green{color:var(--green)}
     .mkt-hero .tagline{font-size:17px;color:var(--text-secondary);margin-bottom:12px;max-width:520px}
     .mkt-hero .ai-row{display:flex;gap:12px;margin-bottom:40px;align-items:center}
@@ -460,8 +460,10 @@
       const acct=getAccount();
       if(acct&&acct.onboarded){showScreen('dashboard');document.getElementById('mcp-url').value=MCP_URL}
       else{showScreen('marketing')}
-      const pills=document.querySelectorAll('.ai-pill');let idx=0;
-      setInterval(()=>{pills.forEach(p=>p.classList.remove('active'));pills[idx].classList.add('active');idx=(idx+1)%pills.length},2000);
+      const pills=document.querySelectorAll('.ai-pill');let pillIdx=0;
+      setInterval(()=>{pills.forEach(p=>p.classList.remove('active'));pills[pillIdx].classList.add('active');pillIdx=(pillIdx+1)%pills.length},2000);
+      const words=document.querySelectorAll('.mkt-hero .anim-word');let wordIdx=0;
+      if(words.length){words[0].classList.add('visible');setInterval(()=>{words[wordIdx].classList.remove('visible');wordIdx=(wordIdx+1)%words.length;words[wordIdx].classList.add('visible')},2500)}
     })();
     function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='dashboard')refreshDashboard()}
     function showDashTab(tab){document.querySelectorAll('.dash-body').forEach(b=>b.style.display='none');document.getElementById('tab-'+tab).style.display='block';document.querySelectorAll('.dash-nav a').forEach(a=>a.classList.remove('active'));event.target.classList.add('active');if(tab==='pending')renderPending();if(tab==='activity')renderActivity();if(tab==='settings'){document.getElementById('mcp-url').value=MCP_URL;document.getElementById('settings-address').textContent=getAccount()?.address||'—'}}
