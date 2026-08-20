@@ -199,8 +199,8 @@
     <div class="mkt-header">
       <div class="mkt-logo"><div class="mkt-logo-icon">M</div><span class="mkt-logo-text">MC Buyer</span></div>
       <div class="mkt-nav">
-        <a onclick="showScreen('onboarding')">Get Started</a>
-        <a onclick="showScreen('onboarding')">Sign In</a>
+        <a onclick="document.getElementById('platforms-section').scrollIntoView({behavior:'smooth'})">Get Started</a>
+        <a onclick="document.getElementById('platforms-section').scrollIntoView({behavior:'smooth'})">Sign In</a>
       </div>
     </div>
 
@@ -224,7 +224,7 @@
       </div>
 
       <div class="cta-row">
-        <button class="mkt-btn primary" onclick="showScreen('onboarding')">Get Started</button>
+        <button class="mkt-btn primary" onclick="document.getElementById('platforms-section').scrollIntoView({behavior:'smooth'})">Get Started</button>
         <button class="mkt-btn secondary" onclick="document.getElementById('capabilities').scrollIntoView({behavior:'smooth'})">See capabilities</button>
       </div>
     </div>
@@ -243,7 +243,7 @@
       </div>
     </div>
 
-    <div class="platforms">
+    <div class="platforms" id="platforms-section">
       <div class="platforms-title">Connect your AI</div>
       <div class="platform-grid">
         <div class="platform-card" onclick="openSetup('chatgpt')">
@@ -459,8 +459,7 @@
     (function(){
       const acct=getAccount();
       if(acct&&acct.onboarded){showScreen('dashboard');document.getElementById('mcp-url').value=MCP_URL}
-      else if(acct){showScreen('onboarding');if(acct.passkey)setStep('wallet');else setStep('passkey')}
-      else{setAccount({passkey:null,secret:null,dailyLimit:100,perTxLimit:25,onboarded:false});showScreen('marketing')}
+      else{showScreen('marketing')}
       const pills=document.querySelectorAll('.ai-pill');let idx=0;
       setInterval(()=>{pills.forEach(p=>p.classList.remove('active'));pills[idx].classList.add('active');idx=(idx+1)%pills.length},2000);
     })();
