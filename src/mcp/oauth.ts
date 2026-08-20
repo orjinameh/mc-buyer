@@ -12,11 +12,14 @@ class MongoClientsStore implements OAuthRegisteredClientsStore {
   constructor(private db: Db) {}
 
   async getClient(clientId: string): Promise<OAuthClientInformationFull | undefined> {
+    console.log(`[OAuth] Looking up client: ${clientId}`);
     const doc = await this.db.collection('oauth_clients').findOne({ client_id: clientId });
+    console.log(`[OAuth] Client found: ${!!doc}`);
     return doc ? (doc as any) : undefined;
   }
 
   async registerClient(clientMetadata: OAuthClientInformationFull): Promise<OAuthClientInformationFull> {
+    console.log(`[OAuth] Registering client: ${clientMetadata.client_id}`);
     await this.db.collection('oauth_clients').updateOne(
       { client_id: clientMetadata.client_id },
       { $set: clientMetadata },

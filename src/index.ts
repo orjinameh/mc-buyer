@@ -216,6 +216,11 @@ async function main() {
     });
   });
 
+  app.get('/debug/clients', async (_req, res) => {
+    const clients = await db.collection('oauth_clients').find({}).toArray();
+    res.json({ count: clients.length, clients: clients.map((c: any) => ({ client_id: c.client_id, redirect_uris: c.redirect_uris })) });
+  });
+
   app.get('/', (_req, res) => {
     res.sendFile(path.join(process.cwd(), 'src', 'api', 'landing.html'));
   });
