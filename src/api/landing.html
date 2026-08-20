@@ -9,8 +9,9 @@
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
     .screen{display:none;min-height:100vh}.screen.active{display:flex;flex-direction:column}
+    @keyframes fadeSlide{0%{opacity:0;transform:translateY(12px)}12%{opacity:1;transform:translateY(0)}88%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}}
+    @keyframes fadeSlideSub{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:translateY(0)}88%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-8px)}}
 
-    /* Marketing */
     .marketing{min-height:100vh;display:flex;flex-direction:column}
     .mkt-header{padding:20px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
     .mkt-logo{display:flex;align-items:center;gap:10px}
@@ -18,36 +19,42 @@
     .mkt-logo-text{font-size:15px;font-weight:600}
     .mkt-nav{display:flex;gap:12px;align-items:center}
     .mkt-nav a{font-size:13px;color:var(--text-secondary);text-decoration:none;cursor:pointer}.mkt-nav a:hover{color:var(--text)}
+
     .mkt-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;max-width:800px;margin:0 auto}
-    .mkt-hero h1{font-size:48px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
-    .mkt-hero h1 .green{color:var(--green)}
-    .mkt-hero .tagline{font-size:18px;color:var(--text-secondary);margin-bottom:40px;max-width:500px}
-    .mkt-hero .cta-row{display:flex;gap:12px;margin-bottom:60px}
+    .mkt-hero h1{font-size:48px;font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:24px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .mkt-hero .anim-line{position:relative;height:56px;overflow:hidden;width:100%}
+    .mkt-hero .anim-word{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;animation:fadeSlide 3s ease-in-out infinite}
+    .mkt-hero .anim-word:nth-child(1){animation-delay:0s}.mkt-hero .anim-word:nth-child(2){animation-delay:3s}.mkt-hero .anim-word:nth-child(3){animation-delay:6s}.mkt-hero .anim-word:nth-child(4){animation-delay:9s}.mkt-hero .anim-word:nth-child(5){animation-delay:12s}.mkt-hero .anim-word:nth-child(6){animation-delay:15s}
+    .mkt-hero .anim-word .green{color:var(--green)}
+    .mkt-hero .tagline{font-size:17px;color:var(--text-secondary);margin-bottom:12px;max-width:520px}
+    .mkt-hero .ai-row{display:flex;gap:12px;margin-bottom:40px;align-items:center}
+    .ai-pill{padding:8px 18px;background:var(--surface);border:1px solid var(--border);border-radius:100px;font-size:14px;font-weight:500;color:var(--text-muted);display:flex;align-items:center;gap:8px;transition:all .4s ease}
+    .ai-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);transition:background .4s ease}
+    .ai-pill.active{border-color:var(--green);color:var(--text);background:var(--green-dim)}.ai-pill.active .dot{background:var(--green)}
+    .mkt-hero .cta-row{display:flex;gap:12px}
     .mkt-btn{padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;border:none}
     .mkt-btn.primary{background:var(--green);color:#000}.mkt-btn.primary:hover{background:#16a34a}
     .mkt-btn.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}.mkt-btn.secondary:hover{border-color:var(--text-muted)}
 
-    .ai-carousel{display:flex;gap:16px;margin-bottom:60px;align-items:center}
-    .ai-pill{padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:100px;font-size:14px;font-weight:500;color:var(--text-secondary);display:flex;align-items:center;gap:8px;transition:all .3s}
-    .ai-pill.active{border-color:var(--green);color:var(--text);background:var(--green-dim)}
-    .ai-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted)}
-    .ai-pill.active .dot{background:var(--green)}
+    .capabilities{width:100%;max-width:720px;margin:0 auto;padding:0 24px 40px}
+    .cap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .cap-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;transition:all .2s}
+    .cap-item:hover{border-color:var(--border-focus)}
+    .cap-icon{font-size:22px;margin-bottom:6px}
+    .cap-label{font-size:13px;color:var(--text-secondary)}
 
-    .platforms{width:100%;max-width:960px;margin:0 auto;padding:0 24px 80px}
-    .platforms-title{font-size:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;text-align:center}
-    .platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .platforms{width:100%;max-width:720px;margin:0 auto;padding:0 24px 80px}
+    .platforms-title{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;text-align:center}
+    .platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .platform-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;cursor:pointer;transition:all .2s}
     .platform-card:hover{border-color:var(--border-focus);transform:translateY(-2px)}
-    .platform-card.selected{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
     .platform-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin-bottom:12px}
     .platform-icon.gpt{background:#10a37f;color:#fff}
     .platform-icon.claude{background:#d97757;color:#fff}
     .platform-icon.grok{background:#1d9bf0;color:#fff}
-    .platform-icon.mcp{background:var(--surface-2);border:1px solid var(--border);color:var(--text)}
     .platform-card h3{font-size:16px;font-weight:600;margin-bottom:4px}
     .platform-card p{font-size:13px;color:var(--text-secondary)}
 
-    /* Setup Modal */
     .setup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
     .setup-overlay.open{display:flex}
     .setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
@@ -65,7 +72,6 @@
     .setup-url input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'SF Mono','Fira Code',monospace;outline:none}
     .setup-link{display:inline-block;margin-top:6px;font-size:13px;color:var(--green);text-decoration:none;cursor:pointer}.setup-link:hover{text-decoration:underline}
 
-    /* Onboarding */
     .center{max-width:440px;width:100%;margin:0 auto;padding:40px 20px;display:flex;flex-direction:column;justify-content:center;min-height:100vh}
     .logo{width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#000;margin-bottom:24px}
     h1{font-size:22px;font-weight:600;color:var(--text);margin-bottom:6px}
@@ -97,7 +103,6 @@
     .btn-lg{width:100%;padding:14px;font-size:15px;font-weight:600;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:none;margin-top:24px}
     .btn-lg.green{background:var(--green);color:#000}.btn-lg.green:hover{background:#16a34a}
 
-    /* Dashboard */
     .dash{padding:0}
     .dash-header{border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
     .dash-logo{display:flex;align-items:center;gap:10px}
@@ -189,7 +194,7 @@
 </head>
 <body>
 
-  <!-- MARKETING LANDING -->
+  <!-- MARKETING -->
   <div id="marketing" class="screen marketing active">
     <div class="mkt-header">
       <div class="mkt-logo"><div class="mkt-logo-icon">M</div><span class="mkt-logo-text">MC Buyer</span></div>
@@ -200,10 +205,19 @@
     </div>
 
     <div class="mkt-hero">
-      <h1>Your AI can now <span class="green">pay</span></h1>
-      <p class="tagline">Store your Stellar credentials once. Let AI agents trade, book, and spend on your behalf — within limits you set.</p>
+      <h1>Your AI can now
+        <div class="anim-line">
+          <span class="anim-word"><span class="green">buy airtime</span></span>
+          <span class="anim-word"><span class="green">pay electricity bills</span></span>
+          <span class="anim-word"><span class="green">send money</span></span>
+          <span class="anim-word"><span class="green">book flights</span></span>
+          <span class="anim-word"><span class="green">shop online</span></span>
+          <span class="anim-word"><span class="green">pay for anything</span></span>
+        </div>
+      </h1>
+      <p class="tagline">Store your credentials once. Let ChatGPT, Claude, and Grok spend on your behalf — within limits you set.</p>
 
-      <div class="ai-carousel">
+      <div class="ai-row">
         <div class="ai-pill active"><span class="dot"></span>ChatGPT</div>
         <div class="ai-pill"><span class="dot"></span>Claude</div>
         <div class="ai-pill"><span class="dot"></span>Grok</div>
@@ -211,11 +225,25 @@
 
       <div class="cta-row">
         <button class="mkt-btn primary" onclick="showScreen('onboarding')">Get Started</button>
-        <button class="mkt-btn secondary" onclick="document.getElementById('platforms').scrollIntoView({behavior:'smooth'})">See how it works</button>
+        <button class="mkt-btn secondary" onclick="document.getElementById('capabilities').scrollIntoView({behavior:'smooth'})">See capabilities</button>
       </div>
     </div>
 
-    <div class="platforms" id="platforms">
+    <div class="capabilities" id="capabilities">
+      <div class="cap-grid">
+        <div class="cap-item"><div class="cap-icon">&#9742;</div><div class="cap-label">Buy Airtime</div></div>
+        <div class="cap-item"><div class="cap-icon">&#9889;</div><div class="cap-label">Pay Electricity</div></div>
+        <div class="cap-item"><div class="cap-icon">&#128176;</div><div class="cap-label">Send Money</div></div>
+        <div class="cap-item"><div class="cap-icon">&#9992;</div><div class="cap-label">Book Flights</div></div>
+        <div class="cap-item"><div class="cap-icon">&#128722;</div><div class="cap-label">Shop Online</div></div>
+        <div class="cap-item"><div class="cap-icon">&#128179;</div><div class="cap-label">Pay Bills</div></div>
+        <div class="cap-item"><div class="cap-icon">&#128178;</div><div class="cap-label">Swap Tokens</div></div>
+        <div class="cap-item"><div class="cap-icon">&#128274;</div><div class="cap-label">You Control</div></div>
+        <div class="cap-item"><div class="cap-icon">&#128202;</div><div class="cap-label">Audit Every Tx</div></div>
+      </div>
+    </div>
+
+    <div class="platforms">
       <div class="platforms-title">Connect your AI</div>
       <div class="platform-grid">
         <div class="platform-card" onclick="openSetup('chatgpt')">
@@ -420,8 +448,6 @@
 
   <script>
     const MCP_URL=window.location.origin+'/mcp';
-
-    // --- State ---
     function getAccount(){return JSON.parse(localStorage.getItem('mc-account')||'null')}
     function setAccount(a){localStorage.setItem('mc-account',JSON.stringify(a))}
     function getAgents(){return JSON.parse(localStorage.getItem('mc-agents')||'[]')}
@@ -430,145 +456,56 @@
     function setAudit(a){localStorage.setItem('mc-audit',JSON.stringify(a))}
     function getPending(){return JSON.parse(localStorage.getItem('mc-pending')||'[]')}
     function setPending(p){localStorage.setItem('mc-pending',JSON.stringify(p))}
-
-    // --- Init ---
     (function(){
       const acct=getAccount();
       if(acct&&acct.onboarded){showScreen('dashboard');document.getElementById('mcp-url').value=MCP_URL}
       else if(acct){showScreen('onboarding');if(acct.passkey)setStep('wallet');else setStep('passkey')}
       else{setAccount({passkey:null,secret:null,dailyLimit:100,perTxLimit:25,onboarded:false});showScreen('marketing')}
-      // Animate AI carousel
       const pills=document.querySelectorAll('.ai-pill');let idx=0;
       setInterval(()=>{pills.forEach(p=>p.classList.remove('active'));pills[idx].classList.add('active');idx=(idx+1)%pills.length},2000);
     })();
+    function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='dashboard')refreshDashboard()}
+    function showDashTab(tab){document.querySelectorAll('.dash-body').forEach(b=>b.style.display='none');document.getElementById('tab-'+tab).style.display='block';document.querySelectorAll('.dash-nav a').forEach(a=>a.classList.remove('active'));event.target.classList.add('active');if(tab==='pending')renderPending();if(tab==='activity')renderActivity();if(tab==='settings'){document.getElementById('mcp-url').value=MCP_URL;document.getElementById('settings-address').textContent=getAccount()?.address||'—'}}
 
-    // --- Routing ---
-    function showScreen(id){
-      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      if(id==='dashboard')refreshDashboard();
-    }
-    function showDashTab(tab){
-      document.querySelectorAll('.dash-body').forEach(b=>b.style.display='none');
-      document.getElementById('tab-'+tab).style.display='block';
-      document.querySelectorAll('.dash-nav a').forEach(a=>a.classList.remove('active'));
-      event.target.classList.add('active');
-      if(tab==='pending')renderPending();
-      if(tab==='activity')renderActivity();
-      if(tab==='settings'){document.getElementById('mcp-url').value=MCP_URL;document.getElementById('settings-address').textContent=getAccount()?.address||'—'}
-    }
-
-    // --- Setup Modal ---
     const SETUP={
-      chatgpt:`<div class="setup-step"><div class="setup-num">1</div><div class="setup-step-content"><h4>Copy the URL below</h4><div class="setup-url"><input value="${MCP_URL}" readonly><button class="btn btn-ghost" onclick="navigator.clipboard.writeText('${MCP_URL}');showToast('Copied')">Copy</button></div></div></div>
-<div class="setup-step"><div class="setup-num">2</div><div class="setup-step-content"><h4>Open ChatGPT Settings</h4><p>On ChatGPT web, go to <strong>Settings → Security</strong> and turn on <strong>Developer mode</strong>. Setup must be completed on web — Developer mode is not available in the mobile app.</p><a class="setup-link" href="https://chatgpt.com/#settings" target="_blank">Open ChatGPT Settings</a></div></div>
-<div class="setup-step"><div class="setup-num">3</div><div class="setup-step-content"><h4>Add MC Buyer plugin</h4><p>In Plugins, select <strong>Browse plugins</strong>, then hit <strong>+</strong> and choose <strong>New Plugin</strong>. Name it "MC Buyer" and paste the URL from step 1.<br><br><strong>Required:</strong> Authentication: <strong>OAuth</strong> — do not leave "No Auth" selected.</p></div></div>
-<div class="setup-step"><div class="setup-num">4</div><div class="setup-step-content"><h4>Connect and authorize</h4><p>Save the plugin, connect it, and complete OAuth authorization. You'll be redirected back to MC Buyer to approve access.</p></div></div>`,
-      claude:`<div class="setup-step"><div class="setup-num">1</div><div class="setup-step-content"><h4>Copy the URL below</h4><div class="setup-url"><input value="${MCP_URL}" readonly><button class="btn btn-ghost" onclick="navigator.clipboard.writeText('${MCP_URL}');showToast('Copied')">Copy</button></div></div></div>
-<div class="setup-step"><div class="setup-num">2</div><div class="setup-step-content"><h4>Open Claude</h4><p>The MC Buyer connector arrives pre-filled — just tap <strong>Add</strong>. Make sure you're signed in to Claude in this browser first.</p><a class="setup-link" href="https://claude.ai/settings" target="_blank">Open Claude Settings</a></div></div>
-<div class="setup-step"><div class="setup-num">3</div><div class="setup-step-content"><h4>Add manually (if needed)</h4><p>If the pre-filled window doesn't appear: go to <strong>Customize → Connectors</strong>, add a custom connector, set Name to "MC Buyer", and paste the URL from step 1.</p></div></div>
-<div class="setup-step"><div class="setup-num">4</div><div class="setup-step-content"><h4>Connect</h4><p>Hit <strong>Connect</strong> next to the new MC Buyer connector and sign in to link your account.</p></div></div>`
+      chatgpt:'<div class="setup-step"><div class="setup-num">1</div><div class="setup-step-content"><h4>Copy the URL below</h4><div class="setup-url"><input value="'+MCP_URL+'" readonly><button class="btn btn-ghost" onclick="navigator.clipboard.writeText(\''+MCP_URL+'\');showToast(\'Copied\')">Copy</button></div></div></div><div class="setup-step"><div class="setup-num">2</div><div class="setup-step-content"><h4>Open ChatGPT Settings</h4><p>On ChatGPT web, go to <strong>Settings → Security</strong> and turn on <strong>Developer mode</strong>. Setup must be completed on web — Developer mode is not available in the mobile app.</p><a class="setup-link" href="https://chatgpt.com/#settings" target="_blank">Open ChatGPT Settings</a></div></div><div class="setup-step"><div class="setup-num">3</div><div class="setup-step-content"><h4>Add MC Buyer plugin</h4><p>In Plugins, select <strong>Browse plugins</strong>, then hit <strong>+</strong> and choose <strong>New Plugin</strong>. Name it "MC Buyer" and paste the URL from step 1.<br><br><strong>Required:</strong> Authentication: <strong>OAuth</strong> — do not leave "No Auth" selected.</p></div></div><div class="setup-step"><div class="setup-num">4</div><div class="setup-step-content"><h4>Connect and authorize</h4><p>Save the plugin, connect it, and complete OAuth authorization. You\'ll be redirected back to MC Buyer to approve access.</p></div></div>',
+      claude:'<div class="setup-step"><div class="setup-num">1</div><div class="setup-step-content"><h4>Copy the URL below</h4><div class="setup-url"><input value="'+MCP_URL+'" readonly><button class="btn btn-ghost" onclick="navigator.clipboard.writeText(\''+MCP_URL+'\');showToast(\'Copied\')">Copy</button></div></div></div><div class="setup-step"><div class="setup-num">2</div><div class="setup-step-content"><h4>Open Claude</h4><p>The MC Buyer connector arrives pre-filled — just tap <strong>Add</strong>. Make sure you\'re signed in to Claude in this browser first.</p><a class="setup-link" href="https://claude.ai/settings" target="_blank">Open Claude Settings</a></div></div><div class="setup-step"><div class="setup-num">3</div><div class="setup-step-content"><h4>Add manually (if needed)</h4><p>If the pre-filled window doesn\'t appear: go to <strong>Customize → Connectors</strong>, add a custom connector, set Name to "MC Buyer", and paste the URL from step 1.</p></div></div><div class="setup-step"><div class="setup-num">4</div><div class="setup-step-content"><h4>Connect</h4><p>Hit <strong>Connect</strong> next to the new MC Buyer connector and sign in to link your account.</p></div></div>'
     };
     const ICONS={chatgpt:'G',claude:'C'};
-
-    function openSetup(platform){
-      document.getElementById('setup-icon').textContent=ICONS[platform];
-      document.getElementById('setup-icon').className='platform-icon '+platform;
-      document.getElementById('setup-title').textContent='Connect '+platform.charAt(0).toUpperCase()+platform.slice(1);
-      document.getElementById('setup-body').innerHTML=SETUP[platform];
-      document.getElementById('setup-modal').classList.add('open');
-    }
+    function openSetup(platform){document.getElementById('setup-icon').textContent=ICONS[platform];document.getElementById('setup-icon').className='platform-icon '+platform;document.getElementById('setup-title').textContent='Connect '+platform.charAt(0).toUpperCase()+platform.slice(1);document.getElementById('setup-body').innerHTML=SETUP[platform];document.getElementById('setup-modal').classList.add('open')}
     function closeSetup(){document.getElementById('setup-modal').classList.remove('open')}
 
-    // --- Onboarding ---
-    function setStep(step){
-      const steps=['passkey','wallet','limits'];const idx=steps.indexOf(step);
-      steps.forEach((s,i)=>{
-        const el=document.getElementById('step-'+s),num=document.getElementById('step-'+s+'-num'),body=document.getElementById('step-'+s+'-body');
-        if(i<idx){el.className='step done';num.innerHTML='&#10003;';body.style.display='none'}
-        else if(i===idx){el.className='step current';num.textContent=i+1;body.style.display='block'}
-        else{el.className='step locked';num.textContent=i+1;body.style.display='none'}
-      });
-    }
+    function setStep(step){const steps=['passkey','wallet','limits'];const idx=steps.indexOf(step);steps.forEach((s,i)=>{const el=document.getElementById('step-'+s),num=document.getElementById('step-'+s+'-num'),body=document.getElementById('step-'+s+'-body');if(i<idx){el.className='step done';num.innerHTML='&#10003;';body.style.display='none'}else if(i===idx){el.className='step current';num.textContent=i+1;body.style.display='block'}else{el.className='step locked';num.textContent=i+1;body.style.display='none'}})}
     function setPasskey(){const pk=document.getElementById('ob-passkey').value.trim();if(!pk){showToast('Enter a passkey');return}const a=getAccount();a.passkey=btoa(pk);setAccount(a);showToast('Passkey set');setStep('wallet')}
     function connectWallet(){const k=document.getElementById('ob-secret').value.trim();if(!k||!k.startsWith('S')){showToast('Enter a valid Stellar secret key');return}const a=getAccount();a.secret=btoa(k);a.address='G'+k.slice(1,56);setAccount(a);showToast('Wallet connected');setStep('limits')}
     function setLimits(){const a=getAccount();a.dailyLimit=parseFloat(document.getElementById('ob-daily').value)||100;a.perTxLimit=parseFloat(document.getElementById('ob-pertx').value)||25;a.onboarded=true;setAccount(a);showToast('Account ready');showScreen('dashboard')}
 
-    // --- Dashboard ---
     function refreshDashboard(){const agents=getAgents();const active=agents.filter(a=>a.enabled);document.getElementById('dash-balance').textContent='0.00 USDC';document.getElementById('dash-daily').textContent='$0.00';document.getElementById('dash-agents').textContent=active.length;renderAgentTable()}
-    function renderAgentTable(){
-      const agents=getAgents();const tbody=document.getElementById('agents-table');
-      if(!agents.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet</td></tr>';return}
-      tbody.innerHTML=agents.map(a=>{
-        const mode=a.approvalMode==='always-ask'?'Always Ask':'Autonomous';
-        return '<tr class="clickable" onclick="showAgentDetail(\''+a.id+'\')"><td><div class="agent-name">'+esc(a.name)+'</div><div class="agent-id">'+a.id+'</div></td><td><div class="perm-list">'+a.operations.map(p=>'<span class="perm-tag">'+p+'</span>').join('')+'</div></td><td><span class="limit-cell">$'+a.dailyLimit+'/$'+a.perTxLimit+'</span></td><td><span class="limit-cell">'+mode+'</span></td><td>'+(a.enabled?'<span class="status-active">Active</span>':'<span class="status-revoked">Revoked</span>')+'</td></tr>';
-      }).join('');
-    }
+    function renderAgentTable(){const agents=getAgents();const tbody=document.getElementById('agents-table');if(!agents.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No agents yet</td></tr>';return}tbody.innerHTML=agents.map(a=>{const mode=a.approvalMode==='always-ask'?'Always Ask':'Autonomous';return '<tr class="clickable" onclick="showAgentDetail(\''+a.id+'\')"><td><div class="agent-name">'+esc(a.name)+'</div><div class="agent-id">'+a.id+'</div></td><td><div class="perm-list">'+a.operations.map(p=>'<span class="perm-tag">'+p+'</span>').join('')+'</div></td><td><span class="limit-cell">$'+a.dailyLimit+'/$'+a.perTxLimit+'</span></td><td><span class="limit-cell">'+mode+'</span></td><td>'+(a.enabled?'<span class="status-active">Active</span>':'<span class="status-revoked">Revoked</span>')+'</td></tr>'}).join('')}
 
-    // --- Create Agent ---
     function toggleCheck(el){const cb=el.querySelector('input[type="checkbox"]');cb.checked=!cb.checked;el.classList.toggle('checked',cb.checked)}
     function selectMode(el){el.closest('.checkbox-group').querySelectorAll('.checkbox-item').forEach(i=>i.classList.remove('checked'));el.classList.add('checked');el.querySelector('input[type="radio"]').checked=true}
-    function createAgent(){
-      const name=document.getElementById('agent-name').value.trim();if(!name){showToast('Enter a name');return}
-      const ops=[];if(document.getElementById('op-pay').checked)ops.push('pay');if(document.getElementById('op-swap').checked)ops.push('swap');if(document.getElementById('op-sign').checked)ops.push('sign');
-      if(!ops.length){showToast('Select at least one operation');return}
-      const mode=document.querySelector('input[name="mode"]:checked').id==='mode-always'?'always-ask':'autonomous';
-      const clientKey='mc_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
-      const agent={id:'agent_'+Date.now(),name,clientKey,mcpUrl:MCP_URL,operations:ops,dailyLimit:document.getElementById('agent-daily').value,perTxLimit:document.getElementById('agent-per-tx').value,approvalMode:mode,enabled:true,createdAt:new Date().toISOString()};
-      const agents=getAgents();agents.push(agent);setAgents(agents);
-      addAudit('created',name,agent.id,'Agent client created');
-      document.getElementById('created-key').textContent=clientKey;
-      document.getElementById('created-mcp').value=MCP_URL;
-      showScreen('agent-created');
-    }
+    function createAgent(){const name=document.getElementById('agent-name').value.trim();if(!name){showToast('Enter a name');return}const ops=[];if(document.getElementById('op-pay').checked)ops.push('pay');if(document.getElementById('op-swap').checked)ops.push('swap');if(document.getElementById('op-sign').checked)ops.push('sign');if(!ops.length){showToast('Select at least one operation');return}const mode=document.querySelector('input[name="mode"]:checked').id==='mode-always'?'always-ask':'autonomous';const clientKey='mc_'+Math.random().toString(36).slice(2)+Date.now().toString(36);const agent={id:'agent_'+Date.now(),name,clientKey,mcpUrl:MCP_URL,operations:ops,dailyLimit:document.getElementById('agent-daily').value,perTxLimit:document.getElementById('agent-per-tx').value,approvalMode:mode,enabled:true,createdAt:new Date().toISOString()};const agents=getAgents();agents.push(agent);setAgents(agents);addAudit('created',name,agent.id,'Agent client created');document.getElementById('created-key').textContent=clientKey;document.getElementById('created-mcp').value=MCP_URL;showScreen('agent-created')}
 
-    // --- Agent Detail ---
     let currentDetailId=null;
-    function showAgentDetail(id){
-      currentDetailId=id;const agent=getAgents().find(a=>a.id===id);if(!agent)return;
-      document.getElementById('detail-name').textContent=agent.name;
-      document.getElementById('detail-id').textContent=agent.id;
-      document.getElementById('detail-key').textContent=agent.clientKey.slice(0,12)+'...'+agent.clientKey.slice(-6);
-      document.getElementById('detail-mcp').textContent=agent.mcpUrl;
-      document.getElementById('detail-mode').textContent=agent.approvalMode==='always-ask'?'Always Ask':'Autonomous';
-      document.getElementById('detail-daily').textContent='$'+agent.dailyLimit;
-      document.getElementById('detail-pertx').textContent='$'+agent.perTxLimit;
-      document.getElementById('detail-ops').textContent=agent.operations.join(', ');
-      document.getElementById('detail-created').textContent=new Date(agent.createdAt).toLocaleDateString();
-      const b=document.getElementById('detail-status');
-      if(agent.enabled){b.className='badge badge-green';b.innerHTML='<span class="dot"></span>Active'}else{b.className='badge';b.style.background='var(--red-dim)';b.style.color='var(--red)';b.innerHTML='<span class="dot"></span>Revoked'}
-      showScreen('agent-detail');
-    }
+    function showAgentDetail(id){currentDetailId=id;const agent=getAgents().find(a=>a.id===id);if(!agent)return;document.getElementById('detail-name').textContent=agent.name;document.getElementById('detail-id').textContent=agent.id;document.getElementById('detail-key').textContent=agent.clientKey.slice(0,12)+'...'+agent.clientKey.slice(-6);document.getElementById('detail-mcp').textContent=agent.mcpUrl;document.getElementById('detail-mode').textContent=agent.approvalMode==='always-ask'?'Always Ask':'Autonomous';document.getElementById('detail-daily').textContent='$'+agent.dailyLimit;document.getElementById('detail-pertx').textContent='$'+agent.perTxLimit;document.getElementById('detail-ops').textContent=agent.operations.join(', ');document.getElementById('detail-created').textContent=new Date(agent.createdAt).toLocaleDateString();const b=document.getElementById('detail-status');if(agent.enabled){b.className='badge badge-green';b.innerHTML='<span class="dot"></span>Active'}else{b.className='badge';b.style.background='var(--red-dim)';b.style.color='var(--red)';b.innerHTML='<span class="dot"></span>Revoked'}showScreen('agent-detail')}
     function revokeAgent(){if(!currentDetailId||!confirm('Revoke this agent?'))return;const a=getAgents();const ag=a.find(x=>x.id===currentDetailId);if(ag){ag.enabled=false;setAgents(a);addAudit('revoked',ag.name,ag.id,'Revoked');showToast('Revoked');showScreen('dashboard')}}
 
-    // --- Pending ---
-    function renderPending(){
-      const pending=getPending();const el=document.getElementById('pending-list');
-      if(!pending.length){el.innerHTML='<div class="empty-state"><p>No pending operations</p></div>';return}
-      el.innerHTML=pending.map(op=>'<div class="pending-card"><div class="pending-header"><span style="font-weight:600">'+esc(op.agentName)+'</span><span style="font-size:12px;color:var(--text-muted)">'+timeAgo(op.createdAt)+'</span></div><div class="pending-body"><div class="pending-row"><span class="pending-label">Operation</span><span class="pending-value">'+esc(op.operation)+'</span></div><div class="pending-row"><span class="pending-label">Destination</span><span class="pending-value mono" style="font-size:12px">'+esc(op.destination)+'</span></div><div class="pending-row"><span class="pending-label">Amount</span><span class="pending-value amount">$'+op.amount+' USDC</span></div></div><div class="pending-actions"><button class="btn btn-deny" onclick="denyPending(\''+op.id+'\')">Deny</button><button class="btn btn-approve" onclick="approvePending(\''+op.id+'\')">Approve</button></div></div>').join('');
-    }
+    function renderPending(){const pending=getPending();const el=document.getElementById('pending-list');if(!pending.length){el.innerHTML='<div class="empty-state"><p>No pending operations</p></div>';return}el.innerHTML=pending.map(op=>'<div class="pending-card"><div class="pending-header"><span style="font-weight:600">'+esc(op.agentName)+'</span><span style="font-size:12px;color:var(--text-muted)">'+timeAgo(op.createdAt)+'</span></div><div class="pending-body"><div class="pending-row"><span class="pending-label">Operation</span><span class="pending-value">'+esc(op.operation)+'</span></div><div class="pending-row"><span class="pending-label">Destination</span><span class="pending-value mono" style="font-size:12px">'+esc(op.destination)+'</span></div><div class="pending-row"><span class="pending-label">Amount</span><span class="pending-value amount">$'+op.amount+' USDC</span></div></div><div class="pending-actions"><button class="btn btn-deny" onclick="denyPending(\''+op.id+'\')">Deny</button><button class="btn btn-approve" onclick="approvePending(\''+op.id+'\')">Approve</button></div></div>').join('')}
     function approvePending(id){openPasskey('Approve this operation?',function(){const p=getPending();const op=p.find(x=>x.id===id);if(op){setPending(p.filter(x=>x.id!==id));addAudit('approved',op.agentName,op.agentId,op.operation+' $'+op.amount);showToast('Approved');renderPending()}})}
     function denyPending(id){const p=getPending();const op=p.find(x=>x.id===id);if(op){setPending(p.filter(x=>x.id!==id));addAudit('denied',op.agentName,op.agentId,op.operation+' denied');showToast('Denied');renderPending()}}
 
-    // --- Activity ---
-    function renderActivity(){
-      const audit=getAudit();const el=document.getElementById('activity-log');
-      if(!audit.length){el.innerHTML='<div class="empty-state"><p>No activity yet</p></div>';return}
-      el.innerHTML=audit.slice().reverse().map(a=>{const icon=a.type==='approved'?'&#10003;':a.type==='denied'?'&#10007;':a.type==='revoked'?'&#9888;':'+';return '<div class="activity-item"><div class="activity-icon '+a.type+'">'+icon+'</div><div class="activity-content"><div class="activity-title">'+esc(a.title)+'</div><div class="activity-desc">'+esc(a.desc)+'</div></div><div class="activity-time">'+timeAgo(a.timestamp)+'</div></div>'}).join('');
-    }
+    function renderActivity(){const audit=getAudit();const el=document.getElementById('activity-log');if(!audit.length){el.innerHTML='<div class="empty-state"><p>No activity yet</p></div>';return}el.innerHTML=audit.slice().reverse().map(a=>{const icon=a.type==='approved'?'&#10003;':a.type==='denied'?'&#10007;':a.type==='revoked'?'&#9888;':'+';return '<div class="activity-item"><div class="activity-icon '+a.type+'">'+icon+'</div><div class="activity-content"><div class="activity-title">'+esc(a.title)+'</div><div class="activity-desc">'+esc(a.desc)+'</div></div><div class="activity-time">'+timeAgo(a.timestamp)+'</div></div>'}).join('')}
     function addAudit(type,agentName,agentId,desc){const a=getAudit();a.push({id:'audit_'+Date.now(),type,agentName,agentId,desc,timestamp:new Date().toISOString()});setAudit(a)}
 
-    // --- Settings ---
     function resetAccount(){if(!confirm('Clear all data?'))return;localStorage.removeItem('mc-account');localStorage.removeItem('mc-agents');localStorage.removeItem('mc-audit');localStorage.removeItem('mc-pending');location.reload()}
     function killSwitch(){if(!confirm('Revoke ALL agents?'))return;const a=getAgents();a.forEach(x=>{if(x.enabled){x.enabled=false;addAudit('revoked',x.name,x.id,'Kill switch')}});setAgents(a);showToast('All revoked');refreshDashboard()}
 
-    // --- Passkey Modal ---
     let passkeyCb=null;
     function openPasskey(prompt,cb){document.getElementById('passkey-prompt').textContent=prompt;document.getElementById('passkey-input').value='';document.getElementById('passkey-modal').classList.add('open');passkeyCb=cb}
     function closePasskey(){document.getElementById('passkey-modal').classList.remove('open');passkeyCb=null}
     function verifyPasskey(){const a=getAccount();const input=document.getElementById('passkey-input').value;if(a&&a.passkey&&btoa(input)!==a.passkey){showToast('Incorrect');return}closePasskey();if(passkeyCb)passkeyCb()}
 
-    // --- Helpers ---
     function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
     function timeAgo(ts){const d=Date.now()-new Date(ts).getTime();if(d<60000)return 'just now';if(d<3600000)return Math.floor(d/60000)+'m ago';if(d<86400000)return Math.floor(d/3600000)+'h ago';return Math.floor(d/86400000)+'d ago'}
     function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
