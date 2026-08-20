@@ -60,7 +60,7 @@ async function main() {
   const baseUrl = new URL(externalUrl);
   const mcpServerUrl = new URL('/mcp', baseUrl);
 
-  const oauthProvider = new SimpleOAuthProvider(db);
+  const oauthProvider = new SimpleOAuthProvider(db, externalUrl);
   const userStore = new Map<string, any>();
   const oauthMetadata = createOAuthMetadata({
     provider: oauthProvider,

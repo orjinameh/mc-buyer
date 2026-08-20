@@ -47,9 +47,11 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
   private codes: Map<string, any> = new Map();
   private tokens: Map<string, any> = new Map();
   private pendingAuths: Map<string, PendingAuth> = new Map();
+  private baseUrl: string;
 
-  constructor(db: Db) {
+  constructor(db: Db, baseUrl: string) {
     this.clientsStoreInstance = new MongoClientsStore(db);
+    this.baseUrl = baseUrl;
   }
 
   get clientsStore(): OAuthRegisteredClientsStore {
@@ -91,7 +93,7 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
       throw new InvalidRequestError('Unregistered redirect_uri');
     }
 
-    const loginUrl = new URL('/auth/login', new URL(params.redirectUri).origin);
+    const loginUrl = new URL('/auth/login', this.baseUrl);
     loginUrl.searchParams.set('session_id', this.createPendingAuth(params, client));
     loginUrl.searchParams.set('redirect_uri', params.redirectUri);
     if (params.state) loginUrl.searchParams.set('state', params.state);
