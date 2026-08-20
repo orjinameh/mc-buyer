@@ -25,7 +25,7 @@ import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middlew
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 
 async function main() {
-  await connectDatabase(config.mongodb.uri);
+  const db = (await connectDatabase(config.mongodb.uri));
   console.log('Connected to MongoDB');
 
   const app = express();
@@ -60,7 +60,7 @@ async function main() {
   const baseUrl = new URL(externalUrl);
   const mcpServerUrl = new URL('/mcp', baseUrl);
 
-  const oauthProvider = new SimpleOAuthProvider();
+  const oauthProvider = new SimpleOAuthProvider(db);
   const userStore = new Map<string, any>();
   const oauthMetadata = createOAuthMetadata({
     provider: oauthProvider,

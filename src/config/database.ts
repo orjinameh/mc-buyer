@@ -19,7 +19,8 @@ export async function connectDatabase(uri: string): Promise<Db> {
   await state.db.collection('service_quotes').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 600 });
   await state.db.collection('payment_authorizations').createIndex({ id: 1 }, { unique: true });
   await state.db.collection('payment_authorizations').createIndex({ quoteId: 1 });
-  await state.db.collection('agent_policies').createIndex({ agentId: 1 }, { unique: true });
+    await state.db.collection('agent_policies').createIndex({ agentId: 1 }, { unique: true });
+    await state.db.collection('oauth_clients').createIndex({ client_id: 1 }, { unique: true });
 
   return state.db;
 }

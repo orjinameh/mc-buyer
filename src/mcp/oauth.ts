@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Response } from 'express';
+import { Db } from 'mongodb';
 import { OAuthServerProvider } from '@modelcontextprotocol/sdk/server/auth/provider.js';
 import { OAuthRegisteredClientsStore } from '@modelcontextprotocol/sdk/server/auth/clients.js';
 import { OAuthClientInformationFull, OAuthTokenRevocationRequest, OAuthTokens } from '@modelcontextprotocol/sdk/shared/auth.js';
@@ -7,27 +8,20 @@ import { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { AuthorizationParams } from '@modelcontextprotocol/sdk/server/auth/provider.js';
 import { InvalidRequestError } from '@modelcontextprotocol/sdk/server/auth/errors.js';
 
-interface StoredAuthCode {
-  client: OAuthClientInformationFull;
-  params: AuthorizationParams;
-}
-
-interface StoredToken {
-  token: string;
-  clientId: string;
-  scopes: string[];
-  expiresAt: number;
-}
-
-class InMemoryClientsStore implements OAuthRegisteredClientsStore {
-  private clients = new Map<string, OAuthClientInformationFull>();
+class MongoClientsStore implements OAuthRegisteredClientsStore {
+  constructor(private db: Db) {}
 
   async getClient(clientId: string): Promise<OAuthClientInformationFull | undefined> {
-    return this.clients.get(clientId);
+    const doc = await this.db.collection('oauth_clients').findOne({ client_id: clientId });
+    return doc ? (doc as any) : undefined;
   }
 
   async registerClient(clientMetadata: OAuthClientInformationFull): Promise<OAuthClientInformationFull> {
-    this.clients.set(clientMetadata.client_id, clientMetadata);
+    await this.db.collection('oauth_clients').updateOne(
+      { client_id: clientMetadata.client_id },
+      { $set: clientMetadata },
+      { upsert: true },
+    );
     return clientMetadata;
   }
 }
@@ -46,11 +40,14 @@ export interface UserAccount {
 }
 
 export class SimpleOAuthProvider implements OAuthServerProvider {
-  private clientsStoreInstance = new InMemoryClientsStore();
-  private codes = new Map<string, StoredAuthCode>();
-  private tokens = new Map<string, StoredToken>();
-  private pendingAuths = new Map<string, PendingAuth>();
-  private users = new Map<string, UserAccount>();
+  private clientsStoreInstance: MongoClientsStore;
+  private codes: Map<string, any> = new Map();
+  private tokens: Map<string, any> = new Map();
+  private pendingAuths: Map<string, PendingAuth> = new Map();
+
+  constructor(db: Db) {
+    this.clientsStoreInstance = new MongoClientsStore(db);
+  }
 
   get clientsStore(): OAuthRegisteredClientsStore {
     return this.clientsStoreInstance;
