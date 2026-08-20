@@ -20,6 +20,8 @@ import { replayProtection } from './api/replayProtection.js';
 import { config } from './config/env.js';
 import { AuthService } from './auth/service.js';
 import { createAuthRouter } from './auth/router.js';
+import { VTpassProvider } from './vtu/providers/vtpass.js';
+import { StellarAccountManager } from './stellar/account.js';
 
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { mcpAuthRouter, mcpAuthMetadataRouter, getOAuthProtectedResourceMetadataUrl, createOAuthMetadata } from '@modelcontextprotocol/sdk/server/auth/router.js';
@@ -56,6 +58,13 @@ async function main() {
   app.use(createDashboardRouter(accounts, quotes, policies));
   app.use(createFundingRouter(accounts, ninebridge));
   app.use(createTransactionsRouter(accounts));
+
+  const vtpass = new VTpassProvider(config.vtpass);
+  const stellarAccounts = new StellarAccountManager({
+    network: config.stellar.network,
+    contractId: config.stellar.sorobanContractId,
+  });
+  const mcpManagers = { accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts };
 
   // --- MCP OAuth Setup ---
   const externalUrl = config.render.externalUrl || `http://localhost:${config.port}`;
@@ -119,7 +128,7 @@ async function main() {
           }
         };
 
-        const server = createMCPServer(rateProvider);
+        const server = createMCPServer(mcpManagers);
         await server.connect(transport);
         await transport.handleRequest(req, res, req.body);
         return;
@@ -167,6 +176,7 @@ async function main() {
 
   // --- Auth ---
   const auth = new AuthService(db);
+  await auth.init();
   app.use(createAuthRouter(auth));
 
   // --- Auth Login & Setup Routes ---
@@ -178,13 +188,13 @@ async function main() {
     res.sendFile(path.join(process.cwd(), 'src', 'api', 'setup.html'));
   });
 
-  app.post('/auth/setup/complete', express.json(), (req, res) => {
-    const { session_id, passkey, secret, address, daily_limit, per_tx_limit, skip } = req.body;
+  app.post('/auth/setup/complete', async (req, res) => {
+    const { session_id } = req.body;
     if (!session_id) {
       res.status(400).json({ error: 'Missing session_id' });
       return;
     }
-    const result = oauthProvider.completePendingAuth(session_id, 'email');
+    const result = await oauthProvider.completePendingAuth(session_id, 'email');
     if (!result) {
       res.status(400).json({ error: 'Invalid or expired session' });
       return;

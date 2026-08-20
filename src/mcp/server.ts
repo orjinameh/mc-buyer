@@ -8,20 +8,20 @@ import { PaymentAuthorizationManager } from '../payments/authorization.js';
 import { SettlementLayer } from '../payments/settlement.js';
 import { VTpassProvider } from '../vtu/providers/vtpass.js';
 import { StellarAccountManager } from '../stellar/account.js';
-import { config } from '../config/env.js';
 import type { IExchangeRateProvider } from '9bridge';
 
-export function createMCPServer(rateProvider: IExchangeRateProvider): McpServer {
-  const accounts = new SpendingAccountManager();
-  const policies = new AgentPolicyManager();
-  const quotes = new QuoteManager(rateProvider);
-  const authorizations = new PaymentAuthorizationManager();
-  const settlement = new SettlementLayer(accounts, authorizations);
-  const vtpass = new VTpassProvider(config.vtpass);
-  const stellarAccounts = new StellarAccountManager({
-    network: config.stellar.network,
-    contractId: config.stellar.sorobanContractId,
-  });
+export interface MCPManagers {
+  accounts: SpendingAccountManager;
+  policies: AgentPolicyManager;
+  quotes: QuoteManager;
+  authorizations: PaymentAuthorizationManager;
+  settlement: SettlementLayer;
+  vtpass: VTpassProvider;
+  stellarAccounts: StellarAccountManager;
+}
+
+export function createMCPServer(managers: MCPManagers): McpServer {
+  const { accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts } = managers;
 
   const tools = new ToolRegistry(
     accounts, policies, quotes, authorizations, settlement, vtpass, stellarAccounts,

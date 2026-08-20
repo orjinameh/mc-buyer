@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Response } from 'express';
-import { Db } from 'mongodb';
+import { Db, Collection } from 'mongodb';
 import { OAuthServerProvider } from '@modelcontextprotocol/sdk/server/auth/provider.js';
 import { OAuthRegisteredClientsStore } from '@modelcontextprotocol/sdk/server/auth/clients.js';
 import { OAuthClientInformationFull, OAuthTokenRevocationRequest, OAuthTokens } from '@modelcontextprotocol/sdk/shared/auth.js';
@@ -9,18 +9,19 @@ import { AuthorizationParams } from '@modelcontextprotocol/sdk/server/auth/provi
 import { InvalidRequestError } from '@modelcontextprotocol/sdk/server/auth/errors.js';
 
 class MongoClientsStore implements OAuthRegisteredClientsStore {
-  constructor(private db: Db) {}
+  private col: Collection;
+
+  constructor(private db: Db) {
+    this.col = db.collection('oauth_clients');
+  }
 
   async getClient(clientId: string): Promise<OAuthClientInformationFull | undefined> {
-    console.log(`[OAuth] Looking up client: ${clientId}`);
-    const doc = await this.db.collection('oauth_clients').findOne({ client_id: clientId });
-    console.log(`[OAuth] Client found: ${!!doc}`);
+    const doc = await this.col.findOne({ client_id: clientId });
     return doc ? (doc as any) : undefined;
   }
 
   async registerClient(clientMetadata: OAuthClientInformationFull): Promise<OAuthClientInformationFull> {
-    console.log(`[OAuth] Registering client: ${clientMetadata.client_id}`);
-    await this.db.collection('oauth_clients').updateOne(
+    await this.col.updateOne(
       { client_id: clientMetadata.client_id },
       { $set: clientMetadata },
       { upsert: true },
@@ -34,52 +35,65 @@ export interface PendingAuth {
   params: AuthorizationParams;
 }
 
-export interface UserAccount {
-  passkey: string;
-  secret: string;
-  address: string;
-  daily_limit: number;
-  per_tx_limit: number;
-}
-
 export class SimpleOAuthProvider implements OAuthServerProvider {
   private clientsStoreInstance: MongoClientsStore;
-  private codes: Map<string, any> = new Map();
-  private tokens: Map<string, any> = new Map();
-  private pendingAuths: Map<string, PendingAuth> = new Map();
+  private codesCol: Collection;
+  private tokensCol: Collection;
+  private pendingAuthsCol: Collection;
   private baseUrl: string;
 
   constructor(db: Db, baseUrl: string) {
     this.clientsStoreInstance = new MongoClientsStore(db);
+    this.codesCol = db.collection('oauth_codes');
+    this.tokensCol = db.collection('oauth_tokens');
+    this.pendingAuthsCol = db.collection('oauth_pending_auths');
     this.baseUrl = baseUrl;
+
+    this.codesCol.createIndex({ code: 1 }, { unique: true });
+    this.codesCol.createIndex({ createdAt: 1 }, { expireAfterSeconds: 600 });
+    this.tokensCol.createIndex({ token: 1 }, { unique: true });
+    this.tokensCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    this.pendingAuthsCol.createIndex({ sessionId: 1 }, { unique: true });
+    this.pendingAuthsCol.createIndex({ createdAt: 1 }, { expireAfterSeconds: 600 });
   }
 
   get clientsStore(): OAuthRegisteredClientsStore {
     return this.clientsStoreInstance;
   }
 
-  createPendingAuth(params: AuthorizationParams, client: OAuthClientInformationFull): string {
+  async createPendingAuth(params: AuthorizationParams, client: OAuthClientInformationFull): Promise<string> {
     const sessionId = randomUUID();
-    this.pendingAuths.set(sessionId, { client, params });
+    await this.pendingAuthsCol.insertOne({
+      sessionId,
+      client,
+      params,
+      createdAt: new Date(),
+    });
     return sessionId;
   }
 
-  getPendingAuth(sessionId: string): PendingAuth | undefined {
-    return this.pendingAuths.get(sessionId);
+  async getPendingAuth(sessionId: string): Promise<PendingAuth | undefined> {
+    const doc = await this.pendingAuthsCol.findOne({ sessionId });
+    if (!doc) return undefined;
+    return { client: doc.client, params: doc.params };
   }
 
-  completePendingAuth(sessionId: string, _provider: string, _email?: string): { redirect: string } | null {
-    const pending = this.pendingAuths.get(sessionId);
-    if (!pending) return null;
-    this.pendingAuths.delete(sessionId);
+  async completePendingAuth(sessionId: string, _provider: string, _email?: string): Promise<{ redirect: string } | null> {
+    const doc = await this.pendingAuthsCol.findOneAndDelete({ sessionId });
+    if (!doc) return null;
 
     const code = randomUUID();
-    this.codes.set(code, pending);
+    await this.codesCol.insertOne({
+      code,
+      client: doc.client,
+      params: doc.params,
+      createdAt: new Date(),
+    });
 
-    const targetUrl = new URL(pending.params.redirectUri);
+    const targetUrl = new URL(doc.params.redirectUri);
     targetUrl.searchParams.set('code', code);
-    if (pending.params.state) {
-      targetUrl.searchParams.set('state', pending.params.state);
+    if (doc.params.state) {
+      targetUrl.searchParams.set('state', doc.params.state);
     }
     return { redirect: targetUrl.toString() };
   }
@@ -94,7 +108,7 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
     }
 
     const loginUrl = new URL('/auth/login', this.baseUrl);
-    loginUrl.searchParams.set('session_id', this.createPendingAuth(params, client));
+    loginUrl.searchParams.set('session_id', await this.createPendingAuth(params, client));
     loginUrl.searchParams.set('redirect_uri', params.redirectUri);
     if (params.state) loginUrl.searchParams.set('state', params.state);
 
@@ -105,7 +119,7 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
     _client: OAuthClientInformationFull,
     authorizationCode: string,
   ): Promise<string> {
-    const codeData = this.codes.get(authorizationCode);
+    const codeData = await this.codesCol.findOne({ code: authorizationCode });
     if (!codeData) {
       throw new Error('Invalid authorization code');
     }
@@ -119,7 +133,7 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
     _redirectUri?: string,
     _resource?: URL,
   ): Promise<OAuthTokens> {
-    const codeData = this.codes.get(authorizationCode);
+    const codeData = await this.codesCol.findOneAndDelete({ code: authorizationCode });
     if (!codeData) {
       throw new Error('Invalid authorization code');
     }
@@ -127,14 +141,14 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
       throw new Error('Client mismatch');
     }
 
-    this.codes.delete(authorizationCode);
-
     const token = randomUUID();
-    this.tokens.set(token, {
+    const expiresAt = Date.now() + 3600000;
+    await this.tokensCol.insertOne({
       token,
       clientId: client.client_id,
       scopes: codeData.params.scopes || [],
-      expiresAt: Date.now() + 3600000,
+      expiresAt,
+      createdAt: new Date(),
     });
 
     return {
@@ -155,7 +169,7 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
   }
 
   async verifyAccessToken(token: string): Promise<AuthInfo> {
-    const tokenData = this.tokens.get(token);
+    const tokenData = await this.tokensCol.findOne({ token });
     if (!tokenData || tokenData.expiresAt < Date.now()) {
       throw new Error('Invalid or expired token');
     }
@@ -172,7 +186,7 @@ export class SimpleOAuthProvider implements OAuthServerProvider {
     request: OAuthTokenRevocationRequest,
   ): Promise<void> {
     if (request.token) {
-      this.tokens.delete(request.token);
+      await this.tokensCol.deleteOne({ token: request.token });
     }
   }
 }

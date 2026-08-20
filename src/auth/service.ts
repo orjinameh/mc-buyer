@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mc-buyer-secret-' + randomUUID();
 const SALT_ROUNDS = 10;
 
 export interface User {
@@ -21,8 +20,24 @@ export interface Session {
 }
 
 export class AuthService {
+  private jwtSecret: string = '';
+
   constructor(private db: Db) {
     this.db.collection('users').createIndex({ email: 1 }, { unique: true });
+  }
+
+  async init(): Promise<void> {
+    const existing = await this.db.collection('app_config').findOne({ key: 'jwt_secret' });
+    if (existing) {
+      this.jwtSecret = existing.value as string;
+    } else {
+      this.jwtSecret = process.env.JWT_SECRET || randomUUID();
+      await this.db.collection('app_config').updateOne(
+        { key: 'jwt_secret' },
+        { $set: { key: 'jwt_secret', value: this.jwtSecret } },
+        { upsert: true },
+      );
+    }
   }
 
   async register(email: string, password: string): Promise<{ userId: string; token: string }> {
@@ -57,13 +72,13 @@ export class AuthService {
 
   verifyToken(token: string): Session | null {
     try {
-      return jwt.verify(token, JWT_SECRET) as Session;
+      return jwt.verify(token, this.jwtSecret) as Session;
     } catch {
       return null;
     }
   }
 
   private issueToken(userId: string, email: string): string {
-    return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: '7d' });
+    return jwt.sign({ userId, email }, this.jwtSecret, { expiresIn: '7d' });
   }
 }

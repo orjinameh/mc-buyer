@@ -61,19 +61,6 @@ export function createDashboardRouter(
     }
   });
 
-  router.get('/api/v1/transactions', async (req: Request, res: Response) => {
-    const userId = req.headers['x-user-id'] as string;
-    if (!userId) {
-      res.status(401).json({ error: 'Missing x-user-id header' });
-      return;
-    }
-
-    const limit = parseInt(req.query.limit as string) || 50;
-    const offset = parseInt(req.query.offset as string) || 0;
-    const transactions = await accounts.getTransactions(userId, limit, offset);
-    res.json({ transactions });
-  });
-
   router.post('/api/v1/policies', async (req: Request, res: Response) => {
     const { agentId, userId, dailyLimit, perTransactionLimit, allowedServices } = req.body;
 

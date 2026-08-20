@@ -21,7 +21,8 @@ export function rateLimit(config: Partial<RateLimitConfig> = {}) {
   const cfg = { ...DEFAULT_CONFIG, ...config };
 
   return (req: Request, res: Response, next: NextFunction): void => {
-    const key = `${req.ip}:${req.path}`;
+    const token = req.headers.authorization?.slice(7) || '';
+    const key = token ? `token:${token.slice(0, 16)}` : `${req.ip}`;
     const now = Date.now();
     const entry = store.get(key);
 

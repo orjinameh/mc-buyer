@@ -139,9 +139,6 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_id: sessionId,
-          passkey: sessionStorage.getItem('mc-passkey'),
-          secret: sessionStorage.getItem('mc-secret'),
-          address: sessionStorage.getItem('mc-address'),
           daily_limit: daily,
           per_tx_limit: pertx
         })
